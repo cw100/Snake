@@ -11,6 +11,18 @@ namespace Snake
         public string gridIcon = " ";
         public bool containsSnake;
 
+        public void Update()
+        {
+            if(containsSnake)
+            {
+                gridIcon = "0";
+
+            }
+            else
+            {
+                gridIcon = " ";
+            }
+        }
 
      
 
