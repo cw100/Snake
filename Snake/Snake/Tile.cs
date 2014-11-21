@@ -9,18 +9,39 @@ namespace Snake
     class Tile
     {
         public string gridIcon = " ";
-        public bool containsSnake;
 
+        public string defaultGridIcon = " ";
+        public bool containsHead;
+        public bool containsBody;
+        public enum Direction
+        {
+            Up,
+            Down,
+            Left,
+            Right
+        }
+        public Direction currentDirection= Direction.Right;
         public void Update()
         {
-            if(containsSnake)
+            if(containsHead)
             {
-                gridIcon = "0";
+                if(currentDirection == Direction.Up)
+                    gridIcon = "^";
+                if (currentDirection == Direction.Down)
+                    gridIcon = "V";
+                if (currentDirection == Direction.Right)
+                    gridIcon = ">";
+                if (currentDirection == Direction.Left)
+                    gridIcon = "<";
 
+            }
+            else if(containsBody)
+            {
+                gridIcon = "@";
             }
             else
             {
-                gridIcon = " ";
+                gridIcon = defaultGridIcon;
             }
         }
 

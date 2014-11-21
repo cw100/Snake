@@ -10,11 +10,13 @@ namespace Snake
 {
     class Player
     {
-        Thread inputThread;
+        Thread playerThread;
         public int[,] headPosition = new int[1,2];
+
+        public int[,] bodyPosition;
         public int snakeLength;
-        public List<int[,]> bodyPositions;
-        public bool active;
+        public List<int[,]> bodyPositions= new List<int[,]>();
+        public bool active = true;
         public string snakeIcon;
         public int gridWidth, gridHeight;
         public enum Direction 
@@ -22,11 +24,10 @@ namespace Snake
             Up,
             Down,
             Left,
-            Right,
+            Right
         }
         public Direction currentDirection;
         public Direction lastDirection;
-
 
         public void Initialize(int x, int y, int snakelength, string snakeicon,int gridwidth,int gridheight)
         {
@@ -34,15 +35,21 @@ namespace Snake
             gridWidth = gridwidth;
             headPosition[0,0]= x;
             headPosition[0,1] = y;
-            bodyPositions = new List<int[,]>();
+            
             snakeLength = snakelength;
             snakeIcon = snakeicon;
             currentDirection = Direction.Right;
+            playerThread = new Thread(new ThreadStart(PlayerInput));
+
+            playerThread.Start();
+            
         }
 
 
         public void PlayerInput()
         {
+            while(active)
+            {
              lastDirection = currentDirection;
             var input = Console.ReadKey(true);
 
@@ -53,6 +60,7 @@ namespace Snake
                     {
                         currentDirection = Direction.Up;
                         lastDirection = currentDirection;
+                       
                     }
                     break;
                 case ConsoleKey.D:
@@ -60,6 +68,7 @@ namespace Snake
                     {
                         currentDirection = Direction.Right;
                         lastDirection = currentDirection;
+                        
                     }
                     break;
                 case ConsoleKey.A:
@@ -67,24 +76,24 @@ namespace Snake
                     {
                         currentDirection = Direction.Left;
                         lastDirection = currentDirection;
-                    }
+                         }
                     break;
                 case ConsoleKey.S:
                     if (lastDirection == Direction.Right || lastDirection == Direction.Left)
                     {
                         currentDirection = Direction.Down;
                         lastDirection = currentDirection;
-                    }
+                       }
                     break;
+            }
             }
         }
 
         public void PlayerMove()
         {
-            Thread.Sleep(100);
-           
-            bodyPositions.Add(headPosition);
 
+            
+           
             if(currentDirection == Direction.Up)
             {
                 headPosition[0,1] -= 1;
@@ -119,25 +128,32 @@ namespace Snake
             {
                 headPosition[0, 1] = gridHeight - 1;
             }
+            bodyPosition = new int[1, 2];
+            bodyPosition[0,1] = headPosition[0,1];
+
+            bodyPosition[0, 0] = headPosition[0, 0];
+
+            bodyPositions.Add(bodyPosition);
+
         }
         public void CheckLength()
         {
             
                 if(bodyPositions.Count>snakeLength)
                 {
-                    bodyPositions.RemoveAt(bodyPositions.Count-1);
+                    bodyPositions.RemoveAt(0);
                 }
             
         }
+        
         public void Update()
         {
-            inputThread = new Thread(new ThreadStart(PlayerInput));
-            inputThread.Start();
-            
 
             PlayerMove();
             CheckLength();
+
         }
+        
 
 
     }
