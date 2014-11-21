@@ -92,7 +92,12 @@ namespace Snake
         public void PlayerMove()
         {
 
-            
+            bodyPosition = new int[1, 2];
+            bodyPosition[0, 1] = headPosition[0, 1];
+
+            bodyPosition[0, 0] = headPosition[0, 0];
+
+            bodyPositions.Add(bodyPosition);
            
             if(currentDirection == Direction.Up)
             {
@@ -128,12 +133,7 @@ namespace Snake
             {
                 headPosition[0, 1] = gridHeight - 1;
             }
-            bodyPosition = new int[1, 2];
-            bodyPosition[0,1] = headPosition[0,1];
-
-            bodyPosition[0, 0] = headPosition[0, 0];
-
-            bodyPositions.Add(bodyPosition);
+           
 
         }
         public void CheckLength()

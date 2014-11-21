@@ -13,6 +13,7 @@ namespace Snake
         public string defaultGridIcon = " ";
         public bool containsHead;
         public bool containsBody;
+        public bool containsPickup;
         public enum Direction
         {
             Up,
@@ -42,6 +43,10 @@ namespace Snake
             else
             {
                 gridIcon = defaultGridIcon;
+            }
+            if(containsPickup)
+            {
+                gridIcon = "x";
             }
         }
 
