@@ -16,9 +16,19 @@ namespace Snake
         static List<Pickup> pickupList = new List<Pickup>();
         static Pickup pickup;
         static int maxPickups;
+
+        static int gridHeight = Console.WindowHeight ;
+        static int gridWidth = Console.WindowWidth ;
+        static int currentPickupNo;
+        static int pickupNoAdded;
+        static int lengthAdded;
+        static int speedAdded;
+        static int startSpeed;
+        static int startLength;
+
         static void AddPickup(int gridwidth, int gridheight, int maxpickups)
         {
-            if (pickupList.Count < maxpickups)
+            if (pickupList.Count < currentPickupNo)
             {
                 pickup = new Pickup();
 
@@ -54,9 +64,7 @@ namespace Snake
             }
         }
         static void UpdateGrid()
-        {
-
-            
+        {            
             for (int i = 0; i < Grid.GetLength(0); i++)
             {
                 for (int j = 0; j < Grid.GetLength(1); j++)
@@ -71,9 +79,7 @@ namespace Snake
                     }
                 }
             }
-        }
-
-       
+        }  
         static void DirectionConvert()
         {
             if(playerOne.currentDirection == Player.Direction.Up)
@@ -105,21 +111,71 @@ namespace Snake
             }
             return false;
         }
-        
-        static void Main(string[] args)
+        static void Initialize()
         {
             Console.CursorVisible = false;
-            
-            playerOne = new Player();
-            int gridHeight = Console.WindowHeight-1;
-            int gridWidth = Console.WindowWidth-1;
-            playerOne.Initialize(10, 10, 5, "O", gridWidth, gridHeight, 50);
 
             CreateGrid(gridWidth, gridHeight);
-            maxPickups = 1;
-            DrawGrid();
-            while (running)
+            startSpeed = 50;
+            maxPickups = 10;
+            lengthAdded = 1;
+            startLength = 1;
+            pickupNoAdded = 1;
+            speedAdded = 5;
+            currentPickupNo = 100;
 
+
+            playerOne = new Player();
+            playerOne.Initialize(10, 10, startLength, gridWidth, gridHeight, startSpeed);
+
+            DrawGrid();
+        }
+        static void GridLogic()
+    {
+
+        Grid[playerOne.headPosition[0, 1], playerOne.headPosition[0, 0]].containsHead = true;
+        for (int i = 0; i < pickupList.Count; i++)
+        {
+
+            Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].containsPickup = true;
+
+            if (Collision(pickupList[i].position, playerOne.headPosition))
+            {
+
+                Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].containsPickup = false;
+
+                pickupList.RemoveAt(i);
+                playerOne.snakeLength+= lengthAdded;
+                if (currentPickupNo < maxPickups)
+                {
+                    currentPickupNo +=pickupNoAdded;
+                }
+                if (playerOne.playerSpeed > 1)
+                {
+                    playerOne.playerSpeed -= speedAdded;
+                }
+            }
+        }
+        foreach (Tile tile in Grid)
+        {
+            tile.containsBody = false;
+        }
+        foreach (int[,] body in playerOne.bodyPositions)
+        {
+            Grid[body[0, 1], body[0, 0]].containsBody = true;
+            if (Collision(body, playerOne.headPosition))
+            {
+                running = false;
+            }
+        }
+        foreach (Tile tile in Grid)
+        {
+            tile.Update();
+        }
+    }
+        static void GameLoop()
+        {
+            while (running)
             {
 
                 foreach (Tile tile in Grid)
@@ -128,54 +184,21 @@ namespace Snake
                     tile.didContainBody = tile.containsBody;
                     tile.didContainPickup = tile.containsPickup;
                 }
-                
+
                 playerOne.Update();
+
                 AddPickup(gridWidth, gridHeight, maxPickups);
-               
-                Grid[playerOne.headPosition[0, 1], playerOne.headPosition[0, 0]].containsHead = true;
 
-                for(int i =0; i < pickupList.Count; i++)
-                {
-                    Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].containsPickup = true;
-                    
-                    if(Collision(pickupList[i].position, playerOne.headPosition))
-                    {
-
-                        Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].containsPickup = false;
-                       
-                        pickupList.RemoveAt(i);
-                        playerOne.snakeLength++;
-                        maxPickups++;
-                        if(playerOne.playerSpeed>1)
-                        {
-                            playerOne.playerSpeed--;
-                        }
-                    }
-                }
-                foreach (Tile tile in Grid)
-                {
-                    tile.containsBody = false;
-                }
-               
-                foreach(int[,] body in playerOne.bodyPositions)
-                {
-
-                    Grid[body[0, 1], body[0, 0]].containsBody = true;
-
-                    if (Collision(body, playerOne.headPosition))
-                    {
-                        running = false;
-                    }
-                }
                 DirectionConvert();
-                foreach(Tile tile in Grid)
-                {
-                    tile.Update();
-
-                }
-                
+                GridLogic();
                 UpdateGrid();
             }
+        }
+        
+        static void Main(string[] args)
+        {
+            Initialize();
+            GameLoop();
             Console.WriteLine("Game Over");
 
         }
