@@ -12,7 +12,7 @@ namespace Snake
     {
         Thread playerThread;
         public int[,] headPosition = new int[1,2];
-
+        public int playerSpeed;
         public int[,] bodyPosition;
         public int snakeLength;
         public List<int[,]> bodyPositions= new List<int[,]>();
@@ -29,8 +29,9 @@ namespace Snake
         public Direction currentDirection;
         public Direction lastDirection;
 
-        public void Initialize(int x, int y, int snakelength, string snakeicon,int gridwidth,int gridheight)
+        public void Initialize(int x, int y, int snakelength, string snakeicon,int gridwidth,int gridheight, int playerspeed)
         {
+            playerSpeed = playerspeed;
             gridHeight = gridheight;
             gridWidth = gridwidth;
             headPosition[0,0]= x;
@@ -91,7 +92,6 @@ namespace Snake
 
         public void PlayerMove()
         {
-
             bodyPosition = new int[1, 2];
             bodyPosition[0, 1] = headPosition[0, 1];
 
@@ -133,6 +133,8 @@ namespace Snake
             {
                 headPosition[0, 1] = gridHeight - 1;
             }
+
+            Thread.Sleep(playerSpeed);
            
 
         }

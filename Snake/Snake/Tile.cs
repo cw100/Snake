@@ -14,6 +14,11 @@ namespace Snake
         public bool containsHead;
         public bool containsBody;
         public bool containsPickup;
+
+        public bool didContainHead;
+        public bool didContainBody;
+        public bool didContainPickup;
+        public bool hasChanged = false;
         public enum Direction
         {
             Up,
@@ -22,8 +27,24 @@ namespace Snake
             Right
         }
         public Direction currentDirection= Direction.Right;
+        public void TestChange()
+        {
+            
+            if (didContainHead != containsHead|| didContainPickup != containsPickup || didContainBody != containsBody)
+            {
+                hasChanged = true;
+            }
+            else
+            {
+                hasChanged = false;
+            }
+           
+            
+       }
         public void Update()
         {
+            TestChange();
+            
             if(containsHead)
             {
                 if(currentDirection == Direction.Up)
@@ -48,6 +69,7 @@ namespace Snake
             {
                 gridIcon = "x";
             }
+
         }
 
      

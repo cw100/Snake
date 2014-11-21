@@ -49,11 +49,27 @@ namespace Snake
                 for (int j = 0; j < Grid.GetLength(1); j++)
                 {
                     Console.Write(Grid[i,j].gridIcon);
-                    Grid[i, j].containsHead = false;
-
-                    Grid[i, j].containsBody = false;
                 }
                 Console.WriteLine();
+            }
+        }
+        static void UpdateGrid()
+        {
+
+            
+            for (int i = 0; i < Grid.GetLength(0); i++)
+            {
+                for (int j = 0; j < Grid.GetLength(1); j++)
+                {
+                    if (Grid[i, j].hasChanged == true)
+                    {
+                        Console.SetCursorPosition(j, i);
+
+                        Console.Write("\b" + Grid[i, j].gridIcon);
+
+                        Grid[i, j].containsHead = false;
+                    }
+                }
             }
         }
 
@@ -93,41 +109,61 @@ namespace Snake
         static void Main(string[] args)
         {
             Console.CursorVisible = false;
-
+            
             playerOne = new Player();
             int gridHeight = Console.WindowHeight-1;
             int gridWidth = Console.WindowWidth-1;
-            playerOne.Initialize(10, 10, 5, "O", gridWidth, gridHeight);
+            playerOne.Initialize(10, 10, 5, "O", gridWidth, gridHeight, 50);
 
             CreateGrid(gridWidth, gridHeight);
             maxPickups = 1;
+            DrawGrid();
             while (running)
 
             {
+
+                foreach (Tile tile in Grid)
+                {
+                    tile.didContainHead = tile.containsHead;
+                    tile.didContainBody = tile.containsBody;
+                    tile.didContainPickup = tile.containsPickup;
+                }
+                
                 playerOne.Update();
                 AddPickup(gridWidth, gridHeight, maxPickups);
                
                 Grid[playerOne.headPosition[0, 1], playerOne.headPosition[0, 0]].containsHead = true;
+
                 for(int i =0; i < pickupList.Count; i++)
                 {
                     Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].containsPickup = true;
+                    
                     if(Collision(pickupList[i].position, playerOne.headPosition))
                     {
 
                         Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].containsPickup = false;
+                       
                         pickupList.RemoveAt(i);
                         playerOne.snakeLength++;
                         maxPickups++;
+                        if(playerOne.playerSpeed>1)
+                        {
+                            playerOne.playerSpeed--;
+                        }
                     }
                 }
-
+                foreach (Tile tile in Grid)
+                {
+                    tile.containsBody = false;
+                }
+               
                 foreach(int[,] body in playerOne.bodyPositions)
                 {
 
                     Grid[body[0, 1], body[0, 0]].containsBody = true;
+
                     if (Collision(body, playerOne.headPosition))
                     {
-
                         running = false;
                     }
                 }
@@ -135,9 +171,10 @@ namespace Snake
                 foreach(Tile tile in Grid)
                 {
                     tile.Update();
+
                 }
-                DrawGrid();
-                Thread.Sleep(100);
+                
+                UpdateGrid();
             }
             Console.WriteLine("Game Over");
 
