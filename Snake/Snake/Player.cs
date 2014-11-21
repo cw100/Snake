@@ -147,6 +147,7 @@ namespace Snake
             if (bodyPositions.Count > snakeLength)
             {
                 bodyPositions.RemoveAt(0);
+
             }
 
         }
@@ -156,6 +157,12 @@ namespace Snake
 
             PlayerMove();
             CheckLength();
+
+        }
+        public void GameEnd()
+        {
+            playerThread.Abort();
+            playerThread.Join();
 
         }
 
