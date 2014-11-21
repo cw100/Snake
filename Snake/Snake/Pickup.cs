@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Snake
 {
-    class Pickup
+    class Object
     {
         public bool active;
         public int[,] position= new int[1,2];
@@ -16,6 +16,12 @@ namespace Snake
             position[0,0]= randomizer.Next(gridwidth);
             position[0, 1] = randomizer.Next(gridheight);
         }
+         public void Initialize(int x, int y)
+         {
+             active = true;
+             position[0, 0] = x;
+             position[0, 1] = y;
+         }
 
 
     }

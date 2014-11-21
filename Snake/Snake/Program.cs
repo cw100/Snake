@@ -12,15 +12,16 @@ namespace Snake
 
         static Tile[,] Grid;
         static Player playerOne;
-
+        static List<Object> wallList;
+        static Object wall;
         static bool gameRunning = true;
         static bool running = true;
         static Random randomizer = new Random();
-        static List<Pickup> pickupList = new List<Pickup>();
-        static Pickup pickup;
+        static List<Object> pickupList;
+        static Object pickup;
         static int maxPickups;
         static int difficulty;
-        static int gridHeight ;
+        static int gridHeight;
         static int gridWidth;
         static int currentPickupNo;
         static int pickupNoAdded;
@@ -30,11 +31,13 @@ namespace Snake
         static int startLength;
 
         static int maxSpeed;
+
+
         static void AddPickup(int gridwidth, int gridheight, int maxpickups)
         {
             if (pickupList.Count < currentPickupNo)
             {
-                pickup = new Pickup();
+                pickup = new Object();
 
                 pickup.Initialize(randomizer, gridwidth, gridheight);
 
@@ -58,50 +61,65 @@ namespace Snake
         {
             Console.Clear();
 
-            for (int i = 0; i < Grid.GetLength(0); i++)
+            for (int i = 0; i < gridHeight; i++)
             {
-                for (int j = 0; j < Grid.GetLength(1); j++)
+                for (int j = 0; j < gridWidth; j++)
                 {
-                    Console.Write(Grid[i,j].gridIcon);
+
+                    Console.ForegroundColor = Grid[i, j].colour;
+                    Console.Write(Grid[i, j].gridIcon);
                 }
-                Console.WriteLine();
             }
             Console.SetCursorPosition(0, Console.WindowHeight * 2 / 3);
             for (int i = 0; i < Grid.GetLength(1); i++)
             {
                 Console.Write("-");
             }
-            Console.SetCursorPosition(13, Console.WindowHeight * 2 / 3 +1);
-           
-            Console.Write("     _______..__   __.      ___       __  ___  _______");
 
-            Console.SetCursorPosition(13, Console.WindowHeight * 2 / 3 + 2);
-            Console.Write("    /       ||  \\ |  |     /   \\     |  |/  / |   ____|");
-
-            Console.SetCursorPosition(13, Console.WindowHeight * 2 / 3 + 3);
-            Console.Write("   |   (----`|   \\|  |    /  ^  \\    |  '  /  |  |__");
-
-            Console.SetCursorPosition(13, Console.WindowHeight * 2 / 3 + 4);
-            Console.Write("    \\   \\    |  . `  |   /  /_\\  \\   |    <   |   __|");
-
-            Console.SetCursorPosition(13, Console.WindowHeight * 2 / 3 + 5);
-            Console.Write(".----)   |   |  |\\   |  /  _____  \\  |  .  \\  |  |____");
-
-            Console.SetCursorPosition(13, Console.WindowHeight * 2 / 3 + 6);
-            Console.Write("|_______/    |__| \\__| /__/     \\__\\ |__|\\__\\ |_______|");
-                                                                   
+            DrawTitle(13, Console.WindowHeight * 2 / 3);
+        }
+        static void LevelOne()
+        {
+            
             
 
+           
+
+
+        }
+
+        static void DrawTitle(int x, int y)
+        {
+
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.SetCursorPosition(x, y + 1);
+
+            Console.Write("     _______..__   __.      ___       __  ___  _______");
+
+            Console.SetCursorPosition(x, y + 2);
+            Console.Write("    /       ||  \\ |  |     /   \\     |  |/  / |   ____|");
+
+            Console.SetCursorPosition(x, y + 3);
+            Console.Write("   |   (----`|   \\|  |    /  ^  \\    |  '  /  |  |__");
+
+            Console.SetCursorPosition(x, y + 4);
+            Console.Write("    \\   \\    |  . `  |   /  /_\\  \\   |    <   |   __|");
+
+            Console.SetCursorPosition(x, y + 5);
+            Console.Write(".----)   |   |  |\\   |  /  _____  \\  |  .  \\  |  |____");
+
+            Console.SetCursorPosition(x, y + 6);
+            Console.Write("|_______/    |__| \\__| /__/     \\__\\ |__|\\__\\ |_______|");
         }
         static void DrawScore()
         {
-
+            Console.ForegroundColor= ConsoleColor.Gray;
             Console.SetCursorPosition(10, Console.WindowHeight * 2 / 3 + 10);
             Console.WriteLine("Score: " + ((playerOne.snakeLength - startLength) * ((difficulty / 3) + 1)));
-          
+
         }
         static void UpdateGrid()
-        {            
+        {
             for (int i = 0; i < Grid.GetLength(0); i++)
             {
                 for (int j = 0; j < Grid.GetLength(1); j++)
@@ -109,32 +127,32 @@ namespace Snake
                     if (Grid[i, j].hasChanged == true)
                     {
                         Console.SetCursorPosition(j, i);
-
+                        Console.ForegroundColor = Grid[i, j].colour;
                         Console.Write("\b" + Grid[i, j].gridIcon);
 
                         Grid[i, j].containsHead = false;
                     }
                 }
             }
-        }  
+        }
         static void DirectionConvert()
         {
-            if(playerOne.currentDirection == Player.Direction.Up)
+            if (playerOne.currentDirection == Player.Direction.Up)
             {
 
                 Grid[playerOne.headPosition[0, 1], playerOne.headPosition[0, 0]].currentDirection = Tile.Direction.Up;
             }
-            if(playerOne.currentDirection == Player.Direction.Down)
+            if (playerOne.currentDirection == Player.Direction.Down)
             {
 
                 Grid[playerOne.headPosition[0, 1], playerOne.headPosition[0, 0]].currentDirection = Tile.Direction.Down;
             }
-            if(playerOne.currentDirection == Player.Direction.Left)
+            if (playerOne.currentDirection == Player.Direction.Left)
             {
 
                 Grid[playerOne.headPosition[0, 1], playerOne.headPosition[0, 0]].currentDirection = Tile.Direction.Left;
             }
-            if(playerOne.currentDirection == Player.Direction.Right)
+            if (playerOne.currentDirection == Player.Direction.Right)
             {
 
                 Grid[playerOne.headPosition[0, 1], playerOne.headPosition[0, 0]].currentDirection = Tile.Direction.Right;
@@ -150,73 +168,96 @@ namespace Snake
         }
         static void Initialize()
         {
+            pickupList = new List<Object>();
             Console.CursorVisible = false;
-            gridHeight = Console.WindowHeight*2/3 ;
-             gridWidth = Console.WindowWidth ;
-             gameRunning = true;
+            gridHeight = Console.WindowHeight * 2 / 3;
+            gridWidth = Console.WindowWidth;
+            gameRunning = true;
             CreateGrid(gridWidth, gridHeight);
-            startSpeed = 81 - (5*difficulty);
+            startSpeed = 81 - (5 * difficulty);
             maxPickups = 10;
             lengthAdded = (2 * difficulty);
             startLength = (3 * difficulty);
             pickupNoAdded = 1;
             speedAdded = (5 * difficulty);
             currentPickupNo = 1;
-            maxSpeed = 50 - (5 * difficulty);
+            maxSpeed = 70 - (5 * difficulty);
 
 
             playerOne = new Player();
-            playerOne.Initialize(10, 10, startLength, gridWidth, gridHeight, startSpeed);
-
+            playerOne.Initialize(15, 15, startLength, gridWidth, gridHeight, startSpeed);
+            LevelOne();
             DrawGrid();
         }
         static void GridLogic()
-    {
-
-        Grid[playerOne.headPosition[0, 1], playerOne.headPosition[0, 0]].containsHead = true;
-        for (int i = 0; i < pickupList.Count; i++)
         {
 
-            Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].containsPickup = true;
-
-            if (Collision(pickupList[i].position, playerOne.headPosition))
+            Grid[playerOne.headPosition[0, 1], playerOne.headPosition[0, 0]].containsHead = true;
+            try
             {
+                for (int i = 0; i < wallList.Count; i++)
+                {
 
-                Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].containsPickup = false;
+                    Grid[wallList[i].position[0, 1], wallList[i].position[0, 0]].containsWall = true;
 
-                pickupList.RemoveAt(i);
-                playerOne.snakeLength+= lengthAdded;
-                if (currentPickupNo < maxPickups)
-                {
-                    currentPickupNo +=pickupNoAdded;
-                }
-                if (playerOne.playerSpeed > maxSpeed)
-                {
-                    playerOne.playerSpeed -= speedAdded;
-                }
-                else
-                {
-                    playerOne.playerSpeed =maxSpeed;
+                    if (Collision(wallList[i].position, playerOne.headPosition))
+                    {
+                        gameRunning = false;
+                    }
                 }
             }
-        }
-        foreach (Tile tile in Grid)
-        {
-            tile.containsBody = false;
-        }
-        foreach (int[,] body in playerOne.bodyPositions)
-        {
-            Grid[body[0, 1], body[0, 0]].containsBody = true;
-            if (Collision(body, playerOne.headPosition))
+            catch
             {
-                gameRunning = false;
+
+            }
+            for (int i = 0; i < pickupList.Count; i++)
+            {
+
+                Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].containsPickup = true;
+
+                if (Collision(pickupList[i].position, playerOne.headPosition))
+                {
+
+                    Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].containsPickup = false;
+
+                    pickupList.RemoveAt(i);
+                    playerOne.snakeLength += lengthAdded;
+                    if (currentPickupNo < maxPickups)
+                    {
+                        currentPickupNo += pickupNoAdded;
+                    }
+                    if (playerOne.playerSpeed > maxSpeed)
+                    {
+                        playerOne.playerSpeed -= speedAdded;
+                        if (playerOne.playerSpeed > maxSpeed)
+                        {
+                            playerOne.playerSpeed = maxSpeed;
+                        }
+                    }
+
+
+                }
+            }
+
+            foreach (Tile tile in Grid)
+            {
+                tile.containsBody = false;
+            }
+
+            foreach (int[,] body in playerOne.bodyPositions)
+            {
+                Grid[body[0, 1], body[0, 0]].containsBody = true;
+                if (Collision(body, playerOne.headPosition))
+                {
+                    gameRunning = false;
+                }
+            }
+
+            foreach (Tile tile in Grid)
+            {
+                tile.Update();
             }
         }
-        foreach (Tile tile in Grid)
-        {
-            tile.Update();
-        }
-    }
         static void GameLoop()
         {
 
@@ -225,6 +266,8 @@ namespace Snake
             {
                 foreach (Tile tile in Grid)
                 {
+
+                    tile.didContainWall = tile.containsWall;
                     tile.didContainHead = tile.containsHead;
                     tile.didContainBody = tile.containsBody;
                     tile.didContainPickup = tile.containsPickup;
@@ -236,18 +279,21 @@ namespace Snake
 
                 DirectionConvert();
                 GridLogic();
+
                 DrawScore();
                 UpdateGrid();
             }
 
+            Console.ForegroundColor = ConsoleColor.Gray;
             Console.Clear();
-            Console.SetCursorPosition((gridWidth-9)/2, gridHeight / 2);
+            Console.SetCursorPosition((gridWidth - 9) / 2, gridHeight / 2);
 
             Console.Write("Game Over");
 
             Console.SetCursorPosition((gridWidth - 9) / 2, 1 + (gridHeight / 2));
             Console.Write("Score: " + ((playerOne.snakeLength - startLength) * ((difficulty / 3) + 1)));
             playerOne.GameEnd();
+            Console.ReadLine();
 
         }
         static bool DifficultySelect()
@@ -256,21 +302,24 @@ namespace Snake
             do
             {
                 Console.Clear();
-                Console.WriteLine("1:Easy\n2:Medium\n3:Hard\n4:Back");
-                switch (Console.ReadLine())
+
+                DrawTitle(13, 2);
+                Console.SetCursorPosition(0, 12);
+                Console.WriteLine("\t1:Easy\n\t2:Medium\n\t3:Hard\n\t4:Back");
+                switch (Console.ReadKey().Key)
                 {
-                    case "1":
+                    case ConsoleKey.D1:
 
                         difficulty = 1;
                         return true;
-                    case "2":
+                    case ConsoleKey.D2:
 
                         difficulty = 2;
                         return true;
-                    case "3":
+                    case ConsoleKey.D3:
                         difficulty = 3;
                         return true;
-                    case "4":
+                    case ConsoleKey.D4:
                         return false;
                     default:
                         valid = false;
@@ -287,18 +336,20 @@ namespace Snake
 
                 Console.WindowHeight = 50;
                 Console.Clear();
-                Console.WriteLine("1:Single Player\n2:Multiplayer\n3:Exit");
-                switch (Console.ReadLine())
+                DrawTitle(13, 2);
+                Console.SetCursorPosition(0, 12);
+                Console.WriteLine("\t1:Single Player\n\t2:Multiplayer\n\t3:Exit");
+                switch (Console.ReadKey().Key)
                 {
-                    case"1":
+                    case ConsoleKey.D1:
                         if (DifficultySelect())
                         {
                             GameLoop();
                         }
                         break;
-                    case"2":
+                    case ConsoleKey.D2:
                         break;
-                    case"3":
+                    case ConsoleKey.D3:
                         running = false;
                         break;
                 }

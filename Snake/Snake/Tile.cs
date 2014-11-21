@@ -10,11 +10,15 @@ namespace Snake
     {
         public string gridIcon = " ";
 
+        public ConsoleColor colour = ConsoleColor.Green;
         public string defaultGridIcon = " ";
         public bool containsHead;
         public bool containsBody;
         public bool containsPickup;
 
+        public bool containsWall;
+        
+        public bool didContainWall;
         public bool didContainHead;
         public bool didContainBody;
         public bool didContainPickup;
@@ -29,8 +33,8 @@ namespace Snake
         public Direction currentDirection= Direction.Right;
         public void TestChange()
         {
-            
-            if (didContainHead != containsHead|| didContainPickup != containsPickup || didContainBody != containsBody)
+
+            if (didContainHead != containsHead || didContainPickup != containsPickup || didContainBody != containsBody || didContainWall != containsWall)
             {
                 hasChanged = true;
             }
@@ -44,35 +48,56 @@ namespace Snake
         public void Update()
         {
             TestChange();
-            
-            if(containsHead)
-            {
-                if(currentDirection == Direction.Up)
-                    gridIcon = "^";
-                if (currentDirection == Direction.Down)
-                    gridIcon = "V";
-                if (currentDirection == Direction.Right)
-                    gridIcon = ">";
-                if (currentDirection == Direction.Left)
-                    gridIcon = "<";
 
-            }
-            else if(containsBody)
+            if (containsHead)
             {
+                colour = ConsoleColor.Red;
+                if (currentDirection == Direction.Up)
+                {
+                    gridIcon = "^";
+                }
+                if (currentDirection == Direction.Down)
+                {
+                    gridIcon = "V";
+                }
+                if (currentDirection == Direction.Right)
+                {
+                    gridIcon = ">";
+                }
+                if (currentDirection == Direction.Left)
+                {
+                    gridIcon = "<";
+                }
+            }
+            else if (containsBody)
+            {
+
+                colour = ConsoleColor.Red;
                 gridIcon = "@";
+
+
             }
             else
             {
+
+                colour = ConsoleColor.Green;
                 gridIcon = defaultGridIcon;
+
             }
-            if(containsPickup)
+            if (containsPickup)
             {
+
+                colour = ConsoleColor.Green;
                 gridIcon = "x";
+            }
+            if (containsWall)
+            {
+
+                colour = ConsoleColor.White;
+                gridIcon = "#";
             }
 
         }
-
-     
 
     }
 }

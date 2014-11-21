@@ -63,8 +63,22 @@ namespace Snake
 
                             }
                             break;
+                        case ConsoleKey.UpArrow:
+                            if (lastDirection == Direction.Right || lastDirection == Direction.Left)
+                            {
+                                currentDirection = Direction.Up;
+
+                            }
+                            break;
 
                         case ConsoleKey.D:
+                            if (lastDirection == Direction.Up || lastDirection == Direction.Down)
+                            {
+                                currentDirection = Direction.Right;
+
+                            }
+                            break;
+                        case ConsoleKey.RightArrow:
                             if (lastDirection == Direction.Up || lastDirection == Direction.Down)
                             {
                                 currentDirection = Direction.Right;
@@ -78,7 +92,20 @@ namespace Snake
                             }
 
                             break;
+                        case ConsoleKey.DownArrow:
+                            if (lastDirection == Direction.Right || lastDirection == Direction.Left)
+                            {
+                                currentDirection = Direction.Down;
+                            }
+
+                            break;
                         case ConsoleKey.A:
+                            if (lastDirection == Direction.Up || lastDirection == Direction.Down)
+                            {
+                                currentDirection = Direction.Left;
+                            }
+                            break;
+                        case ConsoleKey.LeftArrow:
                             if (lastDirection == Direction.Up || lastDirection == Direction.Down)
                             {
                                 currentDirection = Direction.Left;
