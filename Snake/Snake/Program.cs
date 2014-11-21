@@ -71,18 +71,34 @@ namespace Snake
             {
                 Console.Write("-");
             }
-            Console.SetCursorPosition(0, Console.WindowHeight * 2 / 3 +1);
+            Console.SetCursorPosition(13, Console.WindowHeight * 2 / 3 +1);
            
-            Console.WriteLine(
-            "     _______..__   __.      ___       __  ___  _______\n"+
-            "    /       ||  \\ |  |     /   \\     |  |/  / |   ____|\n"+
-            "   |   (----`|   \\|  |    /  ^  \\    |  '  /  |  |__  \n"+
-            "    \\   \\    |  . `  |   /  /_\\  \\   |    <   |   __|  \n"+
-            ".----)   |   |  |\\   |  /  _____  \\  |  .  \\  |  |____\n"+
-            "|_______/    |__| \\__| /__/     \\__\\ |__|\\__\\ |_______|\n");
+            Console.Write("     _______..__   __.      ___       __  ___  _______");
+
+            Console.SetCursorPosition(13, Console.WindowHeight * 2 / 3 + 2);
+            Console.Write("    /       ||  \\ |  |     /   \\     |  |/  / |   ____|");
+
+            Console.SetCursorPosition(13, Console.WindowHeight * 2 / 3 + 3);
+            Console.Write("   |   (----`|   \\|  |    /  ^  \\    |  '  /  |  |__");
+
+            Console.SetCursorPosition(13, Console.WindowHeight * 2 / 3 + 4);
+            Console.Write("    \\   \\    |  . `  |   /  /_\\  \\   |    <   |   __|");
+
+            Console.SetCursorPosition(13, Console.WindowHeight * 2 / 3 + 5);
+            Console.Write(".----)   |   |  |\\   |  /  _____  \\  |  .  \\  |  |____");
+
+            Console.SetCursorPosition(13, Console.WindowHeight * 2 / 3 + 6);
+            Console.Write("|_______/    |__| \\__| /__/     \\__\\ |__|\\__\\ |_______|");
                                                                    
             
 
+        }
+        static void DrawScore()
+        {
+
+            Console.SetCursorPosition(10, Console.WindowHeight * 2 / 3 + 10);
+            Console.WriteLine("Score: " + ((playerOne.snakeLength - startLength) * ((difficulty / 3) + 1)));
+          
         }
         static void UpdateGrid()
         {            
@@ -220,6 +236,7 @@ namespace Snake
 
                 DirectionConvert();
                 GridLogic();
+                DrawScore();
                 UpdateGrid();
             }
 
@@ -228,8 +245,8 @@ namespace Snake
 
             Console.Write("Game Over");
 
-            Console.SetCursorPosition((gridWidth-9)/ 2, 1+(gridHeight / 2));
-            Console.Write("Score: "+((playerOne.snakeLength-startLength)*difficulty/3+1));
+            Console.SetCursorPosition((gridWidth - 9) / 2, 1 + (gridHeight / 2));
+            Console.Write("Score: " + ((playerOne.snakeLength - startLength) * ((difficulty / 3) + 1)));
             playerOne.GameEnd();
 
         }
