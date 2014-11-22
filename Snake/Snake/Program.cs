@@ -39,7 +39,7 @@ namespace Snake
             {
                 pickup = new Object();
 
-                pickup.Initialize(randomizer, gridwidth, gridheight);
+                pickup.Initialize(randomizer, gridwidth, gridheight,wallList);
 
                 pickupList.Add(pickup);
             }
@@ -80,11 +80,16 @@ namespace Snake
         }
         static void LevelOne()
         {
-            
-            
-
-           
-
+            wallList = new List<Object>();
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < gridWidth/2; j++)
+                {
+                    wall = new Object();
+                    wall.Initialize(j, i);
+                    wallList.Add(wall);
+                }
+            }
 
         }
 
@@ -182,8 +187,6 @@ namespace Snake
             speedAdded = (5 * difficulty);
             currentPickupNo = 1;
             maxSpeed = 70 - (5 * difficulty);
-
-
             playerOne = new Player();
             playerOne.Initialize(15, 15, startLength, gridWidth, gridHeight, startSpeed);
             LevelOne();
