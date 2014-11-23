@@ -88,12 +88,12 @@ namespace Snake
             {
 
                 colour = ConsoleColor.Green;
-                gridIcon = "x";
+                gridIcon = "S";
             }
             if (containsWall)
             {
 
-                colour = ConsoleColor.White;
+                colour = ConsoleColor.DarkRed;
                 gridIcon = "#";
             }
 

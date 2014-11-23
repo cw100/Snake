@@ -81,16 +81,38 @@ namespace Snake
         static void LevelOne()
         {
             wallList = new List<Object>();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < gridWidth; i++)
             {
-                for (int j = 0; j < gridWidth/2; j++)
-                {
+                
                     wall = new Object();
-                    wall.Initialize(j, i);
+                    wall.Initialize(i, 0);
                     wallList.Add(wall);
-                }
+                
             }
+            for (int i = 0; i < gridWidth; i++)
+            {
 
+                wall = new Object();
+                wall.Initialize(i, gridHeight-1);
+                wallList.Add(wall);
+
+            }
+            for (int i = 0; i < gridHeight; i++)
+            {
+
+                wall = new Object();
+                wall.Initialize(1, i);
+                wallList.Add(wall);
+
+            }
+            for (int i = 0; i < gridWidth-1; i++)
+            {
+
+                wall = new Object();
+                wall.Initialize(gridWidth-1 , i);
+                wallList.Add(wall);
+
+            }
         }
 
         static void DrawTitle(int x, int y)
@@ -189,7 +211,15 @@ namespace Snake
             maxSpeed = 70 - (5 * difficulty);
             playerOne = new Player();
             playerOne.Initialize(15, 15, startLength, gridWidth, gridHeight, startSpeed);
-            LevelOne();
+           
+            if (WallToggle())
+            {
+                LevelOne();
+            }
+            else
+            {
+                wallList = new List<Object>();
+            }
             DrawGrid();
         }
         static void GridLogic()
@@ -296,7 +326,7 @@ namespace Snake
             Console.SetCursorPosition((gridWidth - 9) / 2, 1 + (gridHeight / 2));
             Console.Write("Score: " + ((playerOne.snakeLength - startLength) * ((difficulty / 3) + 1)));
             playerOne.GameEnd();
-            Console.ReadLine();
+            Console.ReadKey();
 
         }
         static bool DifficultySelect()
@@ -305,10 +335,10 @@ namespace Snake
             do
             {
                 Console.Clear();
-
+                valid = true;
                 DrawTitle(13, 2);
                 Console.SetCursorPosition(0, 12);
-                Console.WriteLine("\t1:Easy\n\t2:Medium\n\t3:Hard\n\t4:Back");
+                Console.WriteLine("\t1:Easy\n\t2:Medium\n\t3:Hard\n\t4:Impossible\n\t5:Back");
                 switch (Console.ReadKey().Key)
                 {
                     case ConsoleKey.D1:
@@ -323,6 +353,9 @@ namespace Snake
                         difficulty = 3;
                         return true;
                     case ConsoleKey.D4:
+                        difficulty = 7;
+                        return true;
+                    case ConsoleKey.D5:
                         return false;
                     default:
                         valid = false;
@@ -331,6 +364,30 @@ namespace Snake
             }
             while (!valid);
             return true;
+        }
+        static bool WallToggle()
+        {
+            bool valid = false;
+            while (!valid) 
+             {
+
+                 Console.Clear();
+                 Console.WriteLine("Walls?");
+                 Console.WriteLine("\t1:Yes\n\t2:No");
+                 valid = true;
+                 switch (Console.ReadKey().Key)
+                 {
+                     case ConsoleKey.D1:
+                         return true;
+                     case ConsoleKey.D2:
+                         return false;
+                     default:
+                         valid = false;
+                         break;
+                 }
+             }
+             
+             return false;
         }
         static void Main(string[] args)
         {
