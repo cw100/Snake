@@ -209,9 +209,6 @@ namespace Snake
             speedAdded = (5 * difficulty);
             currentPickupNo = 1;
             maxSpeed = 70 - (5 * difficulty);
-            playerOne = new Player();
-            playerOne.Initialize(15, 15, startLength, gridWidth, gridHeight, startSpeed);
-           
             if (WallToggle())
             {
                 LevelOne();
@@ -220,6 +217,10 @@ namespace Snake
             {
                 wallList = new List<Object>();
             }
+            playerOne = new Player();
+            playerOne.Initialize(15, 15, startLength, gridWidth, gridHeight, startSpeed);
+           
+            
             DrawGrid();
         }
         static void GridLogic()
@@ -293,8 +294,9 @@ namespace Snake
         }
         static void GameLoop()
         {
-
+           
             Initialize();
+            
             while (gameRunning)
             {
                 foreach (Tile tile in Grid)
@@ -367,27 +369,27 @@ namespace Snake
         }
         static bool WallToggle()
         {
-            bool valid = false;
-            while (!valid) 
-             {
+            bool valid = true;
+            do
+            {
 
-                 Console.Clear();
-                 Console.WriteLine("Walls?");
-                 Console.WriteLine("\t1:Yes\n\t2:No");
-                 valid = true;
-                 switch (Console.ReadKey().Key)
-                 {
-                     case ConsoleKey.D1:
-                         return true;
-                     case ConsoleKey.D2:
-                         return false;
-                     default:
-                         valid = false;
-                         break;
-                 }
-             }
-             
-             return false;
+                Console.Clear();
+                Console.WriteLine("Walls?");
+                Console.WriteLine("\t1:Yes\n\t2:No");
+                valid = true;
+                switch (Console.ReadKey().Key)
+                {
+                    case ConsoleKey.D1:
+                        return true;
+                    case ConsoleKey.D2:
+                        return false;
+                    default:
+                        valid = false;
+                        break;
+                }
+            }
+            while (!valid);
+             return true;
         }
         static void Main(string[] args)
         {
@@ -404,6 +406,7 @@ namespace Snake
                     case ConsoleKey.D1:
                         if (DifficultySelect())
                         {
+                            
                             GameLoop();
                         }
                         break;
