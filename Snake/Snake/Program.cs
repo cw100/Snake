@@ -2,14 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-
+using System.Net;
+using System.Net.Sockets;
+using System.Runtime.Serialization;
+using System.Threading;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 namespace Snake
 {
     class Program
     {
-
+        
+        static Thread serverThread;
         static Tile[,] Grid;
         static Player playerOne;
         static List<Object> wallList;
@@ -32,7 +37,8 @@ namespace Snake
 
         static int maxSpeed;
 
-
+        static System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
+       
         static void AddPickup(int gridwidth, int gridheight, int maxpickups)
         {
             if (pickupList.Count < currentPickupNo)
@@ -105,7 +111,7 @@ namespace Snake
                 wallList.Add(wall);
 
             }
-            for (int i = 0; i < gridWidth-1; i++)
+            for (int i = 0; i < gridHeight; i++)
             {
 
                 wall = new Object();
@@ -391,6 +397,42 @@ namespace Snake
             while (!valid);
              return true;
         }
+
+        public void ServerStart()
+        {
+            Server server = new Server();
+            serverThread = new Thread(new ThreadStart(server.Start));
+            serverThread.Start();
+        }
+        public void ClientStart()
+        {
+            try
+            {
+                clientSocket.Connect("127.0.0.1", 8888);
+
+                Console.WriteLine("Connected ...");
+                while ((clientSocket.Connected))
+                {
+                    
+                    NetworkStream serverStream = clientSocket.GetStream();
+
+                    byte[] outStream = Server.SerializeToBytes<Tile[,]>(Grid);
+
+                    serverStream.Write(outStream, 0, outStream.Length);
+                    serverStream.Flush();
+
+                    byte[] inStream = new byte[100000];
+                    serverStream.Read(inStream, 0, 100000);
+                    Grid = (Tile[,])Server.DeserializeFromBytes(inStream);
+                    
+                }
+            }
+            catch
+            {
+                Console.WriteLine("Connection failed");
+            }
+          
+        }
         static void Main(string[] args)
         {
             while (running)
@@ -411,6 +453,7 @@ namespace Snake
                         }
                         break;
                     case ConsoleKey.D2:
+
                         break;
                     case ConsoleKey.D3:
                         running = false;
