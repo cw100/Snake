@@ -45,7 +45,7 @@ namespace Snake
             playerThread.Start();
 
         }
-
+        
 
         public void PlayerInput()
         {

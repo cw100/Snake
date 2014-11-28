@@ -13,10 +13,10 @@ namespace Snake
 {
     class Program
     {
-        
+        static Server server = new Server();
         static Thread serverThread;
-        static Tile[,] Grid;
-        static Player playerOne;
+       public  static Tile[,] Grid;
+       public static Player playerOne;
         static List<Object> wallList;
         static Object wall;
         static bool gameRunning = true;
@@ -202,7 +202,6 @@ namespace Snake
         static void Initialize()
         {
             pickupList = new List<Object>();
-            Console.CursorVisible = false;
             gridHeight = Console.WindowHeight * 2 / 3;
             gridWidth = Console.WindowWidth;
             gameRunning = true;
@@ -215,14 +214,14 @@ namespace Snake
             speedAdded = (5 * difficulty);
             currentPickupNo = 1;
             maxSpeed = 70 - (5 * difficulty);
-            if (WallToggle())
-            {
-                LevelOne();
-            }
-            else
-            {
-                wallList = new List<Object>();
-            }
+            //if (WallToggle())
+            //{
+            //    LevelOne();
+            //}
+            //else
+            //{
+            //    wallList = new List<Object>();
+            //}
             playerOne = new Player();
             playerOne.Initialize(15, 15, startLength, gridWidth, gridHeight, startSpeed);
            
@@ -298,11 +297,9 @@ namespace Snake
                 tile.Update();
             }
         }
-        static void GameLoop()
+        static void SinglePlayerGameLoop()
         {
-           
             Initialize();
-            
             while (gameRunning)
             {
                 foreach (Tile tile in Grid)
@@ -320,6 +317,36 @@ namespace Snake
 
                 DirectionConvert();
                 GridLogic();
+
+                DrawScore();
+                UpdateGrid();
+            }
+
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Clear();
+            Console.SetCursorPosition((gridWidth - 9) / 2, gridHeight / 2);
+
+            Console.Write("Game Over");
+
+            Console.SetCursorPosition((gridWidth - 9) / 2, 1 + (gridHeight / 2));
+            Console.Write("Score: " + ((playerOne.snakeLength - startLength) * ((difficulty / 3) + 1)));
+            playerOne.GameEnd();
+            Console.ReadKey();
+
+        }
+        static void MultiPlayerGameLoop()
+        {
+            Initialize();
+            while (gameRunning)
+            {
+                foreach (Tile tile in Grid)
+                {
+
+                    tile.didContainWall = tile.containsWall;
+                    tile.didContainHead = tile.containsHead;
+                    tile.didContainBody = tile.containsBody;
+                    tile.didContainPickup = tile.containsPickup;
+                }
 
                 DrawScore();
                 UpdateGrid();
@@ -398,46 +425,80 @@ namespace Snake
              return true;
         }
 
-        public void ServerStart()
+        static void ServerStart()
         {
-            Server server = new Server();
-            serverThread = new Thread(new ThreadStart(server.Start));
-            serverThread.Start();
-        }
-        public void ClientStart()
-        {
+            server = new Server();
+            serverThread = new Thread(new ThreadStart(ServerUpdate));
+            
+                serverThread.Start();
             try
             {
+            }           
+            catch
+            {
+                Console.WriteLine("Server Failed");
+            }
+        }
+        static void ServerUpdate()
+        {
+            server.Start();
+        }
+        static void ClientStart()
+        {
+
+            Initialize();
                 clientSocket.Connect("127.0.0.1", 8888);
 
                 Console.WriteLine("Connected ...");
-                while ((clientSocket.Connected))
+                DrawGrid();
+                while (gameRunning)
                 {
                     
                     NetworkStream serverStream = clientSocket.GetStream();
-
-                    byte[] outStream = Server.SerializeToBytes<Tile[,]>(Grid);
+                    byte[] outStream = Server.SerializeToBytes<Player.Direction>(playerOne.currentDirection);
 
                     serverStream.Write(outStream, 0, outStream.Length);
                     serverStream.Flush();
 
-                    byte[] inStream = new byte[100000];
-                    serverStream.Read(inStream, 0, 100000);
+                    byte[] inStream = new byte[1000000];
+                    serverStream.Read(inStream, 0, 1000000);
                     Grid = (Tile[,])Server.DeserializeFromBytes(inStream);
                     
+                        
+                        DrawScore();
+                        UpdateGrid();
+                    
                 }
-            }
-            catch
-            {
-                Console.WriteLine("Connection failed");
-            }
+            
+            
           
+        }
+        static void MultiplayerSelect()
+        {
+            Console.Clear();
+            DrawTitle(13, 2);
+            Console.SetCursorPosition(0, 12);
+            Console.WriteLine("\t1:Server\n\t2:Client\n\t3:Back");
+            switch (Console.ReadKey().Key)
+                {
+                    case ConsoleKey.D1:
+
+                       ServerStart();
+                       SinglePlayerGameLoop();
+                        break;
+                    case ConsoleKey.D2:
+
+                        ClientStart();
+                        break;
+                    case ConsoleKey.D3:
+                        break;
+                }
         }
         static void Main(string[] args)
         {
             while (running)
             {
-
+                Console.CursorVisible = false;
                 Console.WindowHeight = 50;
                 Console.Clear();
                 DrawTitle(13, 2);
@@ -446,14 +507,16 @@ namespace Snake
                 switch (Console.ReadKey().Key)
                 {
                     case ConsoleKey.D1:
+
                         if (DifficultySelect())
                         {
                             
-                            GameLoop();
+                            SinglePlayerGameLoop();
                         }
                         break;
                     case ConsoleKey.D2:
-
+                        MultiplayerSelect();
+                        
                         break;
                     case ConsoleKey.D3:
                         running = false;

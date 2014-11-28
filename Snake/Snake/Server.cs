@@ -14,30 +14,26 @@ namespace Snake
     class Server
     {
         public void Start()
-    {
-                TcpListener serverSocket = new TcpListener(8888);
-                TcpClient clientSocket = default(TcpClient);
-                int counter = 0;
+        {
+            
+            TcpListener serverSocket = new TcpListener(8888);
+            TcpClient clientSocket = default(TcpClient);
+            int counter = 0;
+            serverSocket.Start();
+            Console.WriteLine("Server Started");
 
-                
-                serverSocket.Start();
-                Console.WriteLine("Server Started");
+            counter = 0;
+            while ((true))
+            {
+                counter += 1;
+                clientSocket = serverSocket.AcceptTcpClient();
+                handleClient client = new handleClient();
+                client.startClient(clientSocket, Convert.ToString(counter));
+            }
 
-                counter = 0;
-                while (true)
-                {
-                    counter += 1;
-                    clientSocket = serverSocket.AcceptTcpClient();
-                    Console.WriteLine("Client No:" + Convert.ToString(counter) + " started");
-                    handleClient client = new handleClient();
-                    client.startClient(clientSocket, Convert.ToString(counter));
-                }
-
-                clientSocket.Close();
-                serverSocket.Stop();
-                Console.WriteLine("exit");
-                Console.ReadLine();
-}
+            clientSocket.Close();
+            serverSocket.Stop();
+        }
         public static byte[] SerializeToBytes<T>(T item)
         {
             var formatter = new BinaryFormatter();
@@ -58,10 +54,8 @@ namespace Snake
         }
         public class handleClient
         {
-
             TcpClient clientSocket;
             string clNo;
-            Tile[,] Grid;
 
             public void startClient(TcpClient inClientSocket, string clineNo)
             {
@@ -74,7 +68,6 @@ namespace Snake
             private void sendData()
             {
                 int requestCount = 0;
-                Tile[,] grid = null;
                 Player.Direction direction;
                 Byte[] sendBytes = null;
                 string rCount = null;
@@ -91,16 +84,15 @@ namespace Snake
 
                         byte[] bytesFrom = new byte[100000];
                         networkStream.Read(bytesFrom, 0, 100000);
+                        Program.playerOne.currentDirection = (Player.Direction)DeserializeFromBytes(bytesFrom);
 
-                        direction = (Player.Direction)DeserializeFromBytes(bytesFrom);
-                        
                         rCount = Convert.ToString(requestCount);
 
                         MemoryStream stream = new MemoryStream();
 
-                        sendBytes = SerializeToBytes<Tile[,]>(grid);
+                        sendBytes = SerializeToBytes<Tile[,]>(Program.Grid);
                         networkStream.Write(sendBytes, 0, sendBytes.Length);
-                        networkStream.Flush();
+                        
 
                     }
                     catch (Exception ex)
