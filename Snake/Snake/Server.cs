@@ -61,7 +61,7 @@ namespace Snake
 
             TcpClient clientSocket;
             string clNo;
-
+            Tile[,] Grid;
 
             public void startClient(TcpClient inClientSocket, string clineNo)
             {
@@ -74,13 +74,11 @@ namespace Snake
             private void sendData()
             {
                 int requestCount = 0;
-                Tile[,] dataFromClient = null;
+                Tile[,] grid = null;
+                Player.Direction direction;
                 Byte[] sendBytes = null;
                 string rCount = null;
                 requestCount = 0;
-
-
-
 
 
                 while ((true))
@@ -94,14 +92,13 @@ namespace Snake
                         byte[] bytesFrom = new byte[100000];
                         networkStream.Read(bytesFrom, 0, 100000);
 
-                        dataFromClient = (Tile[,])DeserializeFromBytes(bytesFrom);
+                        direction = (Player.Direction)DeserializeFromBytes(bytesFrom);
                         
                         rCount = Convert.ToString(requestCount);
 
-
                         MemoryStream stream = new MemoryStream();
 
-                        sendBytes = SerializeToBytes<Tile[,]>(dataFromClient);
+                        sendBytes = SerializeToBytes<Tile[,]>(grid);
                         networkStream.Write(sendBytes, 0, sendBytes.Length);
                         networkStream.Flush();
 

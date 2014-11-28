@@ -20,7 +20,7 @@ namespace Snake
         public string snakeIcon;
         public int gridWidth, gridHeight;
         public bool canMove= true;
-        public enum Direction
+        static public enum Direction
         {
             Up,
             Down,
