@@ -13,11 +13,12 @@ namespace Snake
 {
     class Server
     {
+        public bool connected = false;
         public void Start()
         {
             
             TcpListener serverSocket = new TcpListener(8888);
-            TcpClient clientSocket = default(TcpClient);
+           TcpClient clientSocket = default(TcpClient);
             int counter = 0;
             serverSocket.Start();
             Console.WriteLine("Server Started");
@@ -29,6 +30,7 @@ namespace Snake
                 clientSocket = serverSocket.AcceptTcpClient();
                 handleClient client = new handleClient();
                 client.startClient(clientSocket, Convert.ToString(counter));
+                connected = true;
             }
 
             clientSocket.Close();
