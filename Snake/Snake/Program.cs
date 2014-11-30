@@ -440,6 +440,16 @@ namespace Snake
                 return formatter.Deserialize(stream);
             }
         }
+
+        static void CreateServer()
+        {
+
+            serverThread = new Thread(new ThreadStart(ServerStart));
+            serverThread.Start();
+
+
+        }
+
         static void ServerStart()
         {
 
@@ -500,8 +510,7 @@ namespace Snake
             switch (Console.ReadKey().Key)
                 {
                     case ConsoleKey.D1:
-                       
-                       ServerStart();
+                        CreateServer();
                        SinglePlayerGameLoop();
                        
             
