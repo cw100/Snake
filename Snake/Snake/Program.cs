@@ -424,30 +424,51 @@ namespace Snake
             while (!valid);
              return true;
         }
-
         static void ServerStart()
         {
-            server = new Server();
-            serverThread = new Thread(new ThreadStart(ServerUpdate));
-            
-                serverThread.Start();
-            try
+
+            TcpListener serverSocket = new TcpListener(8888);
+            TcpClient clientSocket = default(TcpClient);
+            int counter = 0;
+            serverSocket.Start();
+            Console.WriteLine("Server Started");
+
+            counter = 0;
+            while ((true))
             {
-            }           
-            catch
-            {
-                Console.WriteLine("Server Failed");
+                counter += 1;
+                clientSocket = serverSocket.AcceptTcpClient();
+                Server client = new Server();
+                client.startClient(clientSocket, Convert.ToString(counter));
+               
             }
         }
-        static void ServerUpdate()
+        public static byte[] SerializeToBytes<T>(T item)
         {
-            server.Start();
+            var formatter = new BinaryFormatter();
+            using (var stream = new MemoryStream())
+            {
+                formatter.Serialize(stream, item);
+                stream.Seek(0, SeekOrigin.Begin);
+                return stream.ToArray();
+            }
         }
+        public static object DeserializeFromBytes(byte[] bytes)
+        {
+            var formatter = new BinaryFormatter();
+            using (var stream = new MemoryStream(bytes))
+            {
+                return formatter.Deserialize(stream);
+            }
+        }
+
+        
+     
         static void ClientStart()
         {
 
             Initialize();
-                clientSocket.Connect("127.0.0.1", 8888);
+                clientSocket.Connect("192.168.1.29", 8888);
 
                 Console.WriteLine("Connected ...");
                 DrawGrid();
@@ -455,14 +476,14 @@ namespace Snake
                 {
                     
                     NetworkStream serverStream = clientSocket.GetStream();
-                    byte[] outStream = Server.SerializeToBytes<Player.Direction>(playerOne.currentDirection);
+                    byte[] outStream = SerializeToBytes<Player.Direction>(playerOne.currentDirection);
 
                     serverStream.Write(outStream, 0, outStream.Length);
                     serverStream.Flush();
 
                     byte[] inStream = new byte[1000000];
                     serverStream.Read(inStream, 0, 1000000);
-                    Grid = (Tile[,])Server.DeserializeFromBytes(inStream);
+                    Grid = (Tile[,])DeserializeFromBytes(inStream);
                     
                         
                         DrawScore();
@@ -484,11 +505,8 @@ namespace Snake
                     case ConsoleKey.D1:
                        
                        ServerStart();
-                     
-                       if (server.connected)
-                       {
-                           SinglePlayerGameLoop();
-                       }
+                       SinglePlayerGameLoop();
+                       
             
                         break;
                     case ConsoleKey.D2:

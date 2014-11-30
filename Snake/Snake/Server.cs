@@ -13,49 +13,7 @@ namespace Snake
 {
     class Server
     {
-        public bool connected = false;
-        public void Start()
-        {
-            
-            TcpListener serverSocket = new TcpListener(8888);
-           TcpClient clientSocket = default(TcpClient);
-            int counter = 0;
-            serverSocket.Start();
-            Console.WriteLine("Server Started");
-
-            counter = 0;
-            while ((true))
-            {
-                counter += 1;
-                clientSocket = serverSocket.AcceptTcpClient();
-                handleClient client = new handleClient();
-                client.startClient(clientSocket, Convert.ToString(counter));
-                connected = true;
-            }
-
-            clientSocket.Close();
-            serverSocket.Stop();
-        }
-        public static byte[] SerializeToBytes<T>(T item)
-        {
-            var formatter = new BinaryFormatter();
-            using (var stream = new MemoryStream())
-            {
-                formatter.Serialize(stream, item);
-                stream.Seek(0, SeekOrigin.Begin);
-                return stream.ToArray();
-            }
-        }
-        public static object DeserializeFromBytes(byte[] bytes)
-        {
-            var formatter = new BinaryFormatter();
-            using (var stream = new MemoryStream(bytes))
-            {
-                return formatter.Deserialize(stream);
-            }
-        }
-        public class handleClient
-        {
+        
             TcpClient clientSocket;
             string clNo;
 
@@ -86,13 +44,13 @@ namespace Snake
 
                         byte[] bytesFrom = new byte[100000];
                         networkStream.Read(bytesFrom, 0, 100000);
-                        Program.playerOne.currentDirection = (Player.Direction)DeserializeFromBytes(bytesFrom);
+                        Program.playerOne.currentDirection = (Player.Direction)Program.DeserializeFromBytes(bytesFrom);
 
                         rCount = Convert.ToString(requestCount);
 
                         MemoryStream stream = new MemoryStream();
 
-                        sendBytes = SerializeToBytes<Tile[,]>(Program.Grid);
+                        sendBytes = Program.SerializeToBytes<Tile[,]>(Program.Grid);
                         networkStream.Write(sendBytes, 0, sendBytes.Length);
                         
 
@@ -107,4 +65,5 @@ namespace Snake
         }
 
     }
-}
+
+
