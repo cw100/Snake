@@ -111,8 +111,11 @@ namespace Snake
                                 currentDirection = Direction.Left;
                             }
                             break;
+
                     
                     }
+
+                    lastDirection = currentDirection;
                 }
             }
         
@@ -165,7 +168,6 @@ namespace Snake
                 headPosition[0, 1] = gridHeight - 1;
             }
             Thread.Sleep(playerSpeed);
-                lastDirection = currentDirection;
 
         }
         public void CheckLength()
@@ -183,6 +185,7 @@ namespace Snake
         {
 
             PlayerMove();
+
             CheckLength();
 
         }
