@@ -447,7 +447,7 @@ namespace Snake
         {
 
             Initialize();
-                clientSocket.Connect("192.168.1.29", 8888);
+                clientSocket.Connect("127.0.0.1", 8888);
 
                 Console.WriteLine("Connected ...");
                 DrawGrid();
@@ -455,8 +455,6 @@ namespace Snake
                 {
                     
                     NetworkStream serverStream = clientSocket.GetStream();
-
-                    playerOne.Update();
                     byte[] outStream = Server.SerializeToBytes<Player.Direction>(playerOne.currentDirection);
 
                     serverStream.Write(outStream, 0, outStream.Length);
@@ -465,8 +463,9 @@ namespace Snake
                     byte[] inStream = new byte[1000000];
                     serverStream.Read(inStream, 0, 1000000);
                     Grid = (Tile[,])Server.DeserializeFromBytes(inStream);
-
-                    DrawScore();
+                    
+                        
+                        DrawScore();
                         UpdateGrid();
                     
                 }
@@ -516,8 +515,6 @@ namespace Snake
                         }
                         break;
                     case ConsoleKey.D2:
-
-                        difficulty = 3;
                         MultiplayerSelect();
                         
                         break;
