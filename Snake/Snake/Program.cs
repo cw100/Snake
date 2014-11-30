@@ -299,7 +299,6 @@ namespace Snake
         }
         static void SinglePlayerGameLoop()
         {
-            Initialize();
             while (gameRunning)
             {
                 foreach (Tile tile in Grid)
@@ -336,7 +335,6 @@ namespace Snake
         }
         static void MultiPlayerGameLoop()
         {
-            Initialize();
             while (gameRunning)
             {
                 foreach (Tile tile in Grid)
@@ -424,6 +422,24 @@ namespace Snake
             while (!valid);
              return true;
         }
+        public static byte[] SerializeToBytes<T>(T item)
+        {
+            var formatter = new BinaryFormatter();
+            using (var stream = new MemoryStream())
+            {
+                formatter.Serialize(stream, item);
+                stream.Seek(0, SeekOrigin.Begin);
+                return stream.ToArray();
+            }
+        }
+        public static object DeserializeFromBytes(byte[] bytes)
+        {
+            var formatter = new BinaryFormatter();
+            using (var stream = new MemoryStream(bytes))
+            {
+                return formatter.Deserialize(stream);
+            }
+        }
         static void ServerStart()
         {
 
@@ -443,31 +459,12 @@ namespace Snake
                
             }
         }
-        public static byte[] SerializeToBytes<T>(T item)
-        {
-            var formatter = new BinaryFormatter();
-            using (var stream = new MemoryStream())
-            {
-                formatter.Serialize(stream, item);
-                stream.Seek(0, SeekOrigin.Begin);
-                return stream.ToArray();
-            }
-        }
-        public static object DeserializeFromBytes(byte[] bytes)
-        {
-            var formatter = new BinaryFormatter();
-            using (var stream = new MemoryStream(bytes))
-            {
-                return formatter.Deserialize(stream);
-            }
-        }
+       
 
         
      
         static void ClientStart()
         {
-
-            Initialize();
                 clientSocket.Connect("192.168.1.29", 8888);
 
                 Console.WriteLine("Connected ...");
@@ -533,13 +530,18 @@ namespace Snake
 
                         if (DifficultySelect())
                         {
-                            
+
+
+                            Initialize();
                             SinglePlayerGameLoop();
                         }
                         break;
                     case ConsoleKey.D2:
 
                         difficulty = 3;
+
+
+                        Initialize();
                         MultiplayerSelect();
                         
                         break;
