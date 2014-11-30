@@ -42,14 +42,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="Snake.exe" size="13824">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="Snake.exe" size="16384">
       <assemblyIdentity name="Snake" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>8rzgx1+CuGsO+lGvjn3hssZs8nI0mGdJsN/jkXxw0bg=</dsig:DigestValue>
+        <dsig:DigestValue>VFEm69f46uxR7MgQ6Je/xrYsbEp0oNfmLMkkc135oNg=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

@@ -482,9 +482,14 @@ namespace Snake
             switch (Console.ReadKey().Key)
                 {
                     case ConsoleKey.D1:
-
+                       
                        ServerStart();
-                       SinglePlayerGameLoop();
+                     
+                       if (server.connected)
+                       {
+                           SinglePlayerGameLoop();
+                       }
+            
                         break;
                     case ConsoleKey.D2:
 
@@ -515,6 +520,8 @@ namespace Snake
                         }
                         break;
                     case ConsoleKey.D2:
+
+                        difficulty = 3;
                         MultiplayerSelect();
                         
                         break;
