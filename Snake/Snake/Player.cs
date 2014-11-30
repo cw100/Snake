@@ -168,14 +168,15 @@ namespace Snake
                 lastDirection = currentDirection;
 
         }
-        public void CheckLength()
+        public bool CheckLength()
         {
 
             if (bodyPositions.Count > snakeLength)
             {
-                bodyPositions.RemoveAt(0);
 
+                return true;
             }
+            return false;
 
         }
 
@@ -183,8 +184,6 @@ namespace Snake
         {
 
             PlayerMove();
-            CheckLength();
-
         }
         public void GameEnd()
         {

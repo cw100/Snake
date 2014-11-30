@@ -44,7 +44,7 @@ namespace Snake
 
                         byte[] bytesFrom = new byte[100000];
                         networkStream.Read(bytesFrom, 0, 100000);
-                        Program.playerOne.currentDirection = (Player.Direction)Program.DeserializeFromBytes(bytesFrom);
+                        Program.player.currentDirection = (Player.Direction)Program.DeserializeFromBytes(bytesFrom);
 
                         rCount = Convert.ToString(requestCount);
 
