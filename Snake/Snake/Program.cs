@@ -367,7 +367,10 @@ namespace Snake
                     tile.didContainBody = tile.containsBody;
                     tile.didContainPickup = tile.containsPickup;
                 }
-
+                foreach (Tile tile in Grid)
+                {
+                    tile.Update();
+                }
                 DrawScore();
                 UpdateGrid();
             }
@@ -510,8 +513,8 @@ namespace Snake
                     serverStream.Write(outStream, 0, outStream.Length);
                     serverStream.Flush();
                     
-                    byte[] inStream = new byte[1000000];
-                    serverStream.Read(inStream, 0, 1000000);
+                    byte[] inStream = new byte[200000];
+                    serverStream.Read(inStream, 0, 200000);
                     Grid = (Tile[,])DeserializeFromBytes(inStream);
                     
                         

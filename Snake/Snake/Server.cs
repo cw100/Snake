@@ -42,8 +42,8 @@ namespace Snake
                         requestCount = requestCount + 1;
                         NetworkStream networkStream = clientSocket.GetStream();
 
-                        byte[] bytesFrom = new byte[100000];
-                        networkStream.Read(bytesFrom, 0, 100000);
+                        byte[] bytesFrom = new byte[10000];
+                        networkStream.Read(bytesFrom, 0, 10000);
                         Program.player.currentDirection = (Player.Direction)Program.DeserializeFromBytes(bytesFrom);
 
                         rCount = Convert.ToString(requestCount);
