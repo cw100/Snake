@@ -9,8 +9,8 @@ namespace Snake
     class Tile
     {
         public string gridIcon = " ";
-
-        public ConsoleColor colour = ConsoleColor.Green;
+        public int headNumber;
+        public ConsoleColor colour = ConsoleColor.Gray;
         public string defaultGridIcon = " ";
         public bool containsHead;
         public bool containsBody;
@@ -22,7 +22,8 @@ namespace Snake
         public bool didContainHead;
         public bool didContainBody;
         public bool didContainPickup;
-        public bool hasChanged = false;
+        public bool hasChanged = true;
+        public bool updated = false;
         public enum Direction
         {
             Up,
@@ -37,11 +38,9 @@ namespace Snake
             if (didContainHead != containsHead || didContainPickup != containsPickup || didContainBody != containsBody || didContainWall != containsWall)
             {
                 hasChanged = true;
+                
             }
-            else
-            {
-                hasChanged = false;
-            }
+         
            
             
        }
@@ -78,24 +77,27 @@ namespace Snake
 
             }
             else
-            {
-
-                colour = ConsoleColor.Green;
-                gridIcon = defaultGridIcon;
-
-            }
             if (containsPickup)
             {
 
                 colour = ConsoleColor.Green;
                 gridIcon = "S";
             }
+            else
             if (containsWall)
             {
 
                 colour = ConsoleColor.DarkRed;
                 gridIcon = "#";
             }
+            else
+            {
+
+                colour = ConsoleColor.Green;
+                gridIcon = defaultGridIcon;
+
+            }
+           
 
         }
 

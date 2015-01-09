@@ -44,14 +44,15 @@ namespace Snake
 
                         byte[] bytesFrom = new byte[10000];
                         networkStream.Read(bytesFrom, 0, 10000);
-                        Program.player.currentDirection = (Player.Direction)Program.DeserializeFromBytes(bytesFrom);
+                        Program.players = (List<Player>)Program.DeserializeFromBytes(bytesFrom);
 
                         rCount = Convert.ToString(requestCount);
 
                         MemoryStream stream = new MemoryStream();
 
                         sendBytes = Program.SerializeToBytes<Tile[,]>(Program.Grid);
-                        networkStream.Write(sendBytes, 0, sendBytes.Length);
+
+                       networkStream.Write(sendBytes, 0, sendBytes.Length);
                         
 
                     }
