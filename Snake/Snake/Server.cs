@@ -13,11 +13,11 @@ namespace Snake
 {
     class Server
     {
-        
+        ConsoleKeyInfo clientInput;
             TcpClient clientSocket;
-            string clNo;
+            int clNo;
 
-            public void startClient(TcpClient inClientSocket, string clineNo)
+            public void startClient(TcpClient inClientSocket, int clineNo)
             {
                 this.clientSocket = inClientSocket;
                 this.clNo = clineNo;
@@ -44,7 +44,7 @@ namespace Snake
 
                         byte[] bytesFrom = new byte[10000];
                         networkStream.Read(bytesFrom, 0, 10000);
-                        Program.players = (List<Player>)Program.DeserializeFromBytes(bytesFrom);
+                        Program.players[this.clNo].input = (ConsoleKeyInfo)Program.DeserializeFromBytes(bytesFrom);
 
                         rCount = Convert.ToString(requestCount);
 
@@ -56,9 +56,10 @@ namespace Snake
                         
 
                     }
-                    catch (Exception ex)
+                    catch 
                     {
-                        Console.WriteLine(ex.ToString());
+                        Thread.CurrentThread.Abort();
+
                     }
                 }
 

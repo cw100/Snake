@@ -18,9 +18,8 @@ namespace Snake
         static Server server = new Server();
         static Thread serverThread;
         static Thread InputThread;
-        static Thread gridThread;
         public static Tile[,] Grid;
-
+        public static int numOfPlayers = 1;
         public static Tile[,] previousGrid;
 
         public static List<Object> wallList;
@@ -113,7 +112,7 @@ namespace Snake
             {
 
                 wall = new Object();
-                wall.Initialize(1, i);
+                wall.Initialize(0, i);
                 wallList.Add(wall);
 
             }
@@ -153,8 +152,11 @@ namespace Snake
         static void DrawScore()
         {
             Console.ForegroundColor = ConsoleColor.Gray;
-            Console.SetCursorPosition(10, Console.WindowHeight * 2 / 3 + 10);
-            //Console.WriteLine("Score: " + ((player.snakeLength - startLength) * ((difficulty / 3) + 1)));
+            for (int i = 0; i < players.Count; i++)
+            {
+                Console.SetCursorPosition(10, Console.WindowHeight * 2 / 3 + 10 +i);
+                Console.Write("Player" + players[i].playerNumber + " Score: " + ((players[i].snakeLength - startLength) * ((difficulty / 3) + 1)));
+            }
 
         }
         static void UpdateGrid()
@@ -163,14 +165,14 @@ namespace Snake
             {
                 for (int j = 0; j < Grid.GetLength(1); j++)
                 {
-                   
+
                     if (Grid[i, j].hasChanged == true)
                     {
-                        
+
                         Console.SetCursorPosition(j, i);
                         Console.ForegroundColor = Grid[i, j].colour;
                         Console.Write(Grid[i, j].gridIcon);
-                        
+
                         Grid[i, j].hasChanged = false;
                     }
                     Grid[i, j].Update();
@@ -227,40 +229,34 @@ namespace Snake
             gridWidth = Console.WindowWidth;
             gameRunning = true;
             CreateGrid(gridWidth, gridHeight);
-            startSpeed = 81 - (5 * difficulty);
+            startSpeed = 150 - (5 * difficulty);
             maxPickups = 10;
             lengthAdded = (2 * difficulty);
             startLength = (3 * difficulty);
             pickupNoAdded = 1;
-            speedAdded = (5 * difficulty);
+            speedAdded = (2 * difficulty);
             currentPickupNo = 1;
             maxSpeed = 70 - (5 * difficulty);
-            //if (WallToggle())
-            //{
-            //    LevelOne();
-            //}
-            //else
-            //{
-            //    wallList = new List<Object>();
-            //}
+
             InputThread = new Thread(Input);
             InputThread.Start();
-            
-            Player player;
             players = new List<Player>();
-            player = new Player();
-            player.Initialize(15, 15, startLength, gridWidth, gridHeight, startSpeed, 1);
-            players.Add(player);
-            player = new Player();
-            player.Initialize(20, 20, startLength, gridWidth, gridHeight, startSpeed, 2);
-            players.Add(player);
+            for (int i = 1; i <= numOfPlayers; i++)
+            {
+                Player player;
 
-            
+                player = new Player();
+                player.Initialize(5, 5 + 5 * i, startLength, gridWidth, gridHeight, startSpeed, i);
+                
+                players.Add(player);
+            }
+
+
             foreach (Player plyr in players)
             {
                 Thread playerthreads = new Thread(() => PlayerLogic(plyr));
                 playerthreads.Start();
-                
+
             }
             DrawGrid();
 
@@ -278,7 +274,7 @@ namespace Snake
 
                 Grid[player.bodyPositions[player.bodyPositions.Count - 1][0, 1], player.bodyPositions[player.bodyPositions.Count - 1][0, 0]].didContainHead = true;
 
-                Grid[player.headPosition[0, 1], player.headPosition[0, 0]].headNumber +=1;
+                Grid[player.headPosition[0, 1], player.headPosition[0, 0]].headNumber += 1;
                 Grid[player.headPosition[0, 1], player.headPosition[0, 0]].containsHead = true;
 
 
@@ -330,7 +326,7 @@ namespace Snake
                     Grid[body[0, 1], body[0, 0]].containsBody = true;
                     Grid[body[0, 1], body[0, 0]].hasChanged = true;
                     Grid[body[0, 1], body[0, 0]].Update();
-                   
+
                 }
 
                 if (player.CheckLength())
@@ -347,16 +343,18 @@ namespace Snake
                 {
                     player.active = false;
                 }
-                if (Grid[player.headPosition[0, 1], player.headPosition[0, 0]].containsHead == true&&Grid[player.headPosition[0, 1], player.headPosition[0, 0]].headNumber >1)
+                if (Grid[player.headPosition[0, 1], player.headPosition[0, 0]].containsHead == true && Grid[player.headPosition[0, 1], player.headPosition[0, 0]].headNumber > 1)
                 {
                     player.active = false;
                 }
-                if(player.active == false)
+                if (player.active == false)
                 {
                     Thread.CurrentThread.Abort();
+
+                    Thread.CurrentThread.Join();
                 }
-               
-                
+
+
             }
         }
         static void GridLogic()
@@ -379,7 +377,7 @@ namespace Snake
 
             }
             catch { }
-            
+
 
             UpdateGrid();
         }
@@ -391,18 +389,21 @@ namespace Snake
                 DrawScore();
                 GridLogic();
                 playersDead = 0;
-                foreach(Player player in players)
+                foreach (Player player in players)
                 {
-                    if(player.active ==false)
+                    if (player.active == false)
                     {
                         playersDead++;
                     }
-                    
+
                 }
-                if(playersDead == players.Count)
+                if (playersDead == players.Count)
                 {
-                    gameRunning = false;
                     InputThread.Abort();
+
+                    InputThread.Join();
+
+                    gameRunning = false;
                 }
             }
 
@@ -412,8 +413,11 @@ namespace Snake
 
             Console.Write("Game Over");
 
-            Console.SetCursorPosition((gridWidth - 9) / 2, 1 + (gridHeight / 2));
-            //Console.Write("Score: " + ((player.snakeLength - startLength) * ((difficulty / 3) + 1)));
+            for (int i = 0; i < players.Count; i++)
+            {
+                Console.SetCursorPosition((gridWidth - 9) / 2, 1 + (gridHeight / 2)+i);
+                Console.Write("Player" + players[i].playerNumber+" Score: " + ((players[i].snakeLength - startLength) * ((difficulty / 3) + 1)));
+            }
             foreach (Player player in players)
             {
                 player.GameEnd();
@@ -421,41 +425,7 @@ namespace Snake
             Console.ReadKey();
 
         }
-        static void MultiPlayerGameLoop()
-        {
-            while (gameRunning)
-            {
-                foreach (Tile tile in Grid)
-                {
 
-                    tile.didContainWall = tile.containsWall;
-                    tile.didContainHead = tile.containsHead;
-                    tile.didContainBody = tile.containsBody;
-                    tile.didContainPickup = tile.containsPickup;
-                }
-                foreach (Tile tile in Grid)
-                {
-                    tile.Update();
-                }
-                DrawScore();
-                UpdateGrid();
-            }
-
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Clear();
-            Console.SetCursorPosition((gridWidth - 9) / 2, gridHeight / 2);
-
-            Console.Write("Game Over");
-
-            Console.SetCursorPosition((gridWidth - 9) / 2, 1 + (gridHeight / 2));
-            //Console.Write("Score: " + ((player.snakeLength - startLength) * ((difficulty / 3) + 1)));
-            foreach (Player player in players)
-            {
-                player.GameEnd();
-            }
-            Console.ReadKey();
-
-        }
         static bool DifficultySelect()
         {
             bool valid = true;
@@ -543,7 +513,7 @@ namespace Snake
 
 
         }
-
+        static bool connected = false;
         static void ServerStart()
         {
 
@@ -559,8 +529,8 @@ namespace Snake
                 counter += 1;
                 clientSocket = serverSocket.AcceptTcpClient();
                 Server client = new Server();
-                client.startClient(clientSocket, Convert.ToString(counter));
-
+                client.startClient(clientSocket, counter);
+                connected = true;
             }
         }
 
@@ -577,11 +547,9 @@ namespace Snake
             {
 
                 NetworkStream serverStream = clientSocket.GetStream();
-                byte[] outStream = SerializeToBytes<List<Player>>(players);
-                foreach (Player player in players)
-                {
-                    player.lastDirection = player.currentDirection;
-                }
+                byte[] outStream = SerializeToBytes<ConsoleKeyInfo>(input);
+
+
                 serverStream.Write(outStream, 0, outStream.Length);
                 serverStream.Flush();
 
@@ -603,10 +571,7 @@ namespace Snake
 
 
                 DrawScore();
-                foreach (Tile tile in Grid)
-                {
-                    tile.Update();
-                }
+
                 UpdateGrid();
 
             }
@@ -623,13 +588,24 @@ namespace Snake
             switch (Console.ReadKey().Key)
             {
                 case ConsoleKey.D1:
+                    numOfPlayers = 2;
+                    
                     CreateServer();
-                    SinglePlayerGameLoop();
+                    do
+                    {
+                        if (connected)
+                        {
+                            Initialize();
+                            SinglePlayerGameLoop();
+                        }
+                    }
+                    while (!connected);
 
 
                     break;
                 case ConsoleKey.D2:
-
+                    numOfPlayers = 0;
+                    Initialize();
                     ClientStart();
                     break;
                 case ConsoleKey.D3:
@@ -652,7 +628,7 @@ namespace Snake
 
                         if (DifficultySelect())
                         {
-
+                            numOfPlayers = 2;
                             Initialize();
                             SinglePlayerGameLoop();
                         }
@@ -662,7 +638,6 @@ namespace Snake
                         difficulty = 3;
 
 
-                        Initialize();
                         MultiplayerSelect();
 
                         break;

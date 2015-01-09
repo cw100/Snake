@@ -10,7 +10,8 @@ namespace Snake
 {
     class Player
     {
-        Thread playerMoveThread;
+       
+       public bool multiplayer = false;
         Thread playerInputThread;
         public int[,] headPosition = new int[1, 2];
         public int playerSpeed;
@@ -22,6 +23,7 @@ namespace Snake
         public int gridWidth, gridHeight;
         public bool canMove = true;
         public int playerNumber;
+        public ConsoleKeyInfo input;
         public enum Direction
         {
             Up,
@@ -56,6 +58,7 @@ namespace Snake
         {
             while (true)
             {
+
                 if (playerNumber == 1)
                 {
                     switch (Program.input.Key)
@@ -90,47 +93,95 @@ namespace Snake
                             break;
                     }
                 }
-                if (playerNumber == 2)
+                if (multiplayer)
                 {
-                    switch (Program.input.Key)
+                    if (playerNumber == 2)
                     {
-                        case ConsoleKey.UpArrow:
-                            if (lastDirection == Direction.Right || lastDirection == Direction.Left)
-                            {
-                                currentDirection = Direction.Up;
+                        switch (input.Key)
+                        {
+                            case ConsoleKey.UpArrow:
+                                if (lastDirection == Direction.Right || lastDirection == Direction.Left)
+                                {
+                                    currentDirection = Direction.Up;
 
-                            }
-                            break;
+                                }
+                                break;
 
 
-                        case ConsoleKey.RightArrow:
-                            if (lastDirection == Direction.Up || lastDirection == Direction.Down)
-                            {
-                                currentDirection = Direction.Right;
+                            case ConsoleKey.RightArrow:
+                                if (lastDirection == Direction.Up || lastDirection == Direction.Down)
+                                {
+                                    currentDirection = Direction.Right;
 
-                            }
-                            break;
+                                }
+                                break;
 
-                        case ConsoleKey.DownArrow:
-                            if (lastDirection == Direction.Right || lastDirection == Direction.Left)
-                            {
-                                currentDirection = Direction.Down;
-                            }
+                            case ConsoleKey.DownArrow:
+                                if (lastDirection == Direction.Right || lastDirection == Direction.Left)
+                                {
+                                    currentDirection = Direction.Down;
+                                }
 
-                            break;
+                                break;
 
-                        case ConsoleKey.LeftArrow:
-                            if (lastDirection == Direction.Up || lastDirection == Direction.Down)
-                            {
-                                currentDirection = Direction.Left;
-                            }
-                            break;
+                            case ConsoleKey.LeftArrow:
+                                if (lastDirection == Direction.Up || lastDirection == Direction.Down)
+                                {
+                                    currentDirection = Direction.Left;
+                                }
+                                break;
+                        }
+                    }
+                }
+                else
+                    if (playerNumber == 2)
+                    {
+                        switch (Program.input.Key)
+                        {
+                            case ConsoleKey.UpArrow:
+                                if (lastDirection == Direction.Right || lastDirection == Direction.Left)
+                                {
+                                    currentDirection = Direction.Up;
+
+                                }
+                                break;
+
+
+                            case ConsoleKey.RightArrow:
+                                if (lastDirection == Direction.Up || lastDirection == Direction.Down)
+                                {
+                                    currentDirection = Direction.Right;
+
+                                }
+                                break;
+
+                            case ConsoleKey.DownArrow:
+                                if (lastDirection == Direction.Right || lastDirection == Direction.Left)
+                                {
+                                    currentDirection = Direction.Down;
+                                }
+
+                                break;
+
+                            case ConsoleKey.LeftArrow:
+                                if (lastDirection == Direction.Up || lastDirection == Direction.Down)
+                                {
+                                    currentDirection = Direction.Left;
+                                }
+                                break;
+                        }
+
+
+
                     }
 
-                }
+                
 
             }
         }
+            
+        
+
 
 
 
@@ -163,6 +214,8 @@ namespace Snake
             {
                 headPosition[0, 0] -= 1;
             }
+            lastDirection = currentDirection;
+
             if (headPosition[0, 0] > gridWidth - 1)
             {
                 headPosition[0, 0] = 0;
@@ -185,8 +238,7 @@ namespace Snake
             {
                 new System.Threading.ManualResetEvent(false).WaitOne(playerSpeed);
             }
-            lastDirection = currentDirection;
-
+            
         }
         public bool CheckLength()
         {
