@@ -13,6 +13,7 @@ namespace Snake
 {
     class Program
     {
+        public static List<Thread> playerThreads = new List<Thread>();
         static int playersDead = 0;
         public static List<Player> players = new List<Player>();
         static Server server = new Server();
@@ -155,7 +156,8 @@ namespace Snake
             for (int i = 0; i < players.Count; i++)
             {
                 Console.SetCursorPosition(10, Console.WindowHeight * 2 / 3 + 10 +i);
-                Console.Write("Player" + players[i].playerNumber + " Score: " + ((players[i].snakeLength - startLength) * ((difficulty / 3) + 1)));
+                players[i].score =((players[i].snakeLength - startLength) * ((difficulty / 3) + 1));
+                Console.Write("Player" + players[i].playerNumber + " Score: " + players[i].score );
             }
 
         }
@@ -211,12 +213,14 @@ namespace Snake
             return false;
         }
 
+        public static bool inputTrue;
         public static ConsoleKeyInfo input;
         static void Input()
         {
             while (true)
             {
-                input = Console.ReadKey(true);
+                  input = Console.ReadKey(true);
+                
             }
         }
 
@@ -251,14 +255,19 @@ namespace Snake
                 players.Add(player);
             }
 
-
+            List<Thread> playerThreads = new List<Thread>();
             foreach (Player plyr in players)
             {
-                Thread playerthreads = new Thread(() => PlayerLogic(plyr));
-                playerthreads.Start();
+                Thread playerthread = new Thread(() => PlayerLogic(plyr));
+                playerThreads.Add(playerthread);
+                
 
             }
             DrawGrid();
+            foreach(Thread playerthread in playerThreads)
+            {
+                playerthread.Start();
+            }
 
         }
         static void PlayerLogic(Player player)
@@ -381,6 +390,30 @@ namespace Snake
 
             UpdateGrid();
         }
+        static void GameOver()
+        {
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Clear();
+            Console.SetCursorPosition((gridWidth - 9) / 2, gridHeight / 2);
+
+            Console.Write("Game Over");
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                Console.SetCursorPosition((gridWidth - 9) / 2, 1 + (gridHeight / 2) + i);
+                Console.Write("Player" + players[i].playerNumber + " Score: " + players[i].score);
+            }
+           
+            foreach (Player player in players)
+            {
+                player.GameEnd();
+            }
+            foreach (Thread playerthread in playerThreads)
+            {
+                playerthread.Abort();
+            }
+            Console.ReadKey();
+        }
         static void SinglePlayerGameLoop()
         {
             while (gameRunning)
@@ -407,22 +440,7 @@ namespace Snake
                 }
             }
 
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Clear();
-            Console.SetCursorPosition((gridWidth - 9) / 2, gridHeight / 2);
-
-            Console.Write("Game Over");
-
-            for (int i = 0; i < players.Count; i++)
-            {
-                Console.SetCursorPosition((gridWidth - 9) / 2, 1 + (gridHeight / 2)+i);
-                Console.Write("Player" + players[i].playerNumber+" Score: " + ((players[i].snakeLength - startLength) * ((difficulty / 3) + 1)));
-            }
-            foreach (Player player in players)
-            {
-                player.GameEnd();
-            }
-            Console.ReadKey();
+            GameOver();
 
         }
 
@@ -616,6 +634,7 @@ namespace Snake
         {
             while (running)
             {
+                Console.Title = "Snake";
                 Console.CursorVisible = false;
                 Console.WindowHeight = 50;
                 Console.Clear();
@@ -628,7 +647,7 @@ namespace Snake
 
                         if (DifficultySelect())
                         {
-                            numOfPlayers = 2;
+                            numOfPlayers = 5;
                             Initialize();
                             SinglePlayerGameLoop();
                         }
