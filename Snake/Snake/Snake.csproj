@@ -73,6 +73,7 @@
     <Compile Include="Player.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ScoreObject.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="Tile.cs" />
   </ItemGroup>

@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using System.Xml.Serialization;
 namespace Snake
 {
     class Program
@@ -23,6 +24,12 @@ namespace Snake
         public static int numOfPlayers = 1;
         public static Tile[,] previousGrid;
 
+        public static List<ScoreObject> easyHighScores;
+        public static List<ScoreObject> normalHighScores;
+
+        public static List<ScoreObject> hardHighScores;
+
+        public static List<ScoreObject> impossibleHighScores;
         public static List<Object> wallList;
         public static Object wall;
         static bool gameRunning = true;
@@ -157,7 +164,7 @@ namespace Snake
             {
                 Console.SetCursorPosition(10, Console.WindowHeight * 2 / 3 + 10 +i);
                 players[i].score =((players[i].snakeLength - startLength) * ((difficulty / 3) + 1));
-                Console.Write("Player" + players[i].playerNumber + " Score: " + players[i].score );
+                Console.Write(players[i].username + "'s score: " + players[i].score);
             }
 
         }
@@ -212,8 +219,6 @@ namespace Snake
             }
             return false;
         }
-
-        public static bool inputTrue;
         public static ConsoleKeyInfo input;
         static void Input()
         {
@@ -242,19 +247,27 @@ namespace Snake
             currentPickupNo = 1;
             maxSpeed = 70 - (5 * difficulty);
 
-            InputThread = new Thread(Input);
-            InputThread.Start();
+          
             players = new List<Player>();
             for (int i = 1; i <= numOfPlayers; i++)
             {
                 Player player;
 
                 player = new Player();
+
                 player.Initialize(5, 5 + 5 * i, startLength, gridWidth, gridHeight, startSpeed, i);
+                Console.Clear();
                 
+               
+                DrawTitle(13, 2);
+                Console.SetCursorPosition(0, 12);
+                Console.WriteLine("\tPlayer "+i+" please enter a username: ");
+                player.username = Console.ReadLine();
                 players.Add(player);
             }
 
+            InputThread = new Thread(Input);
+            InputThread.Start();
             List<Thread> playerThreads = new List<Thread>();
             foreach (Player plyr in players)
             {
@@ -263,6 +276,7 @@ namespace Snake
                 
 
             }
+
             DrawGrid();
             foreach(Thread playerthread in playerThreads)
             {
@@ -401,9 +415,32 @@ namespace Snake
             for (int i = 0; i < players.Count; i++)
             {
                 Console.SetCursorPosition((gridWidth - 9) / 2, 1 + (gridHeight / 2) + i);
-                Console.Write("Player" + players[i].playerNumber + " Score: " + players[i].score);
+                Console.Write(players[i].username + "'s score: " + players[i].score);
+                ScoreObject score = new ScoreObject();
+                score.score = players[i].score;
+                score.username = players[i].username;
+                if (difficulty == 1)
+                {
+                    easyHighScores.Add(score);
+                }
+                if (difficulty == 2)
+                {
+                    normalHighScores.Add(score);
+                }
+                if (difficulty == 3)
+                {
+                    hardHighScores.Add(score);
+                }
+                if (difficulty == 7)
+                {
+                    impossibleHighScores.Add(score);
+                }
             }
-           
+            SaveHighScores(easyHighScores, "easy");
+            SaveHighScores(normalHighScores, "normal");
+            SaveHighScores(hardHighScores, "hard");
+            SaveHighScores(impossibleHighScores, "impossible");
+
             foreach (Player player in players)
             {
                 player.GameEnd();
@@ -412,8 +449,99 @@ namespace Snake
             {
                 playerthread.Abort();
             }
-            Console.ReadKey();
+            
         }
+
+
+
+        static void SaveHighScores(List<ScoreObject> highscore, string filename)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(List<ScoreObject>));
+            string location = @"" + filename + "Scores.xml";
+            using (TextWriter writer = new StreamWriter(location))
+            {
+                serializer.Serialize(writer, highscore);
+            } 
+           
+
+        }
+        static void ClearHighScores( string filename)
+        {
+            List<ScoreObject> blank = new List<ScoreObject>();
+            XmlSerializer serializer = new XmlSerializer(typeof(List<ScoreObject>));
+            string location = @"" + filename + "Scores.xml";
+            using (TextWriter writer = new StreamWriter(location))
+            {
+                serializer.Serialize(writer, blank);
+            }
+
+        }
+        static List<ScoreObject> LoadHighScores(string filename)
+        {
+            List<ScoreObject> highscore = new List<ScoreObject>();
+            StreamReader streamReader;
+            XmlSerializer serializer = new XmlSerializer(typeof(List<ScoreObject>));
+            string location = @"" + filename + "Scores.xml";
+            try
+            {
+                 streamReader = new StreamReader(location);
+            }
+            catch
+            {
+                using (TextWriter writer = new StreamWriter(location))
+                {
+                    serializer.Serialize(writer, highscore);
+                }
+                 streamReader = new StreamReader(location);
+            }
+
+
+            highscore = (List<ScoreObject>)serializer.Deserialize(streamReader);
+            streamReader.Close();
+
+
+            return highscore;
+        }
+
+        static List<ScoreObject> SortHighScores(List<ScoreObject> highscore)
+        {
+            ScoreObject scoreHolder= new ScoreObject();
+            bool sorted = false;
+            while (!sorted)
+            {
+                sorted = true;
+                for (int i = 0; i < highscore.Count - 1; i++)
+                {
+                    if (highscore[i].score < highscore[i + 1].score)
+                    {
+                        scoreHolder = highscore[i];
+                        highscore[i] = highscore[i + 1];
+                        highscore[i + 1] = scoreHolder;
+                        sorted = false;
+                    }
+                }
+            }
+            return highscore;
+        }
+
+        static void DisplayHighScores(List<ScoreObject> highscore, string type)
+        {
+            Console.Clear();
+            DrawTitle(13, 2);
+            Console.SetCursorPosition(0, 12);
+            Console.WriteLine("\t"+type+" scores");
+            foreach(ScoreObject score in highscore)
+            {
+                Console.WriteLine();
+                Console.WriteLine("\t"+score.username + " " + score.score);
+            }
+            Console.ReadKey();
+
+        }
+
+
+
+
         static void SinglePlayerGameLoop()
         {
             while (gameRunning)
@@ -472,6 +600,39 @@ namespace Snake
                         return true;
                     case ConsoleKey.D5:
                         return false;
+                    default:
+                        valid = false;
+                        break;
+                }
+            }
+            while (!valid);
+            return true;
+        }
+        static bool PlayerSelect()
+        {
+            bool valid = true;
+            do
+            {
+                Console.Clear();
+                valid = true;
+                DrawTitle(13, 2);
+                Console.SetCursorPosition(0, 12);
+                Console.WriteLine("\tHow many players? (max of 2):");
+                switch (Console.ReadKey().Key)
+                {
+                    case ConsoleKey.D1:
+
+                        numOfPlayers = 1;
+                        return true;
+                    case ConsoleKey.D2:
+
+                        numOfPlayers = 2;
+                        return true;
+                    case ConsoleKey.D3:
+                       
+                        return false;
+                 
+                  
                     default:
                         valid = false;
                         break;
@@ -630,26 +791,126 @@ namespace Snake
                     break;
             }
         }
+        static bool ClearSelect()
+        {
+            bool valid;
+            do
+            {
+                Console.Clear();
+                valid = true;
+                DrawTitle(13, 2);
+                Console.SetCursorPosition(0, 12);
+                Console.WriteLine("\tClear scores for:\n\t1:Easy\n\t2:Medium\n\t3:Hard\n\t4:Impossible\n\t5:Back");
+                
+
+
+                switch (Console.ReadKey().Key)
+                {
+                    case ConsoleKey.D1:
+
+                        ClearHighScores("Easy");
+                        easyHighScores = new List<ScoreObject>();
+                        return true;
+                    case ConsoleKey.D2:
+                         ClearHighScores("Normal");
+                        normalHighScores = new List<ScoreObject>();
+                        return true;
+                    case ConsoleKey.D3:
+                         ClearHighScores("Hard");
+                        hardHighScores = new List<ScoreObject>();
+                        return true;
+                    case ConsoleKey.D4:
+                         ClearHighScores("Impossible");
+                        impossibleHighScores = new List<ScoreObject>();
+                        return true;
+                    case ConsoleKey.D5:
+                        return false;
+                    default:
+                        valid = false;
+                        break;
+                }
+            }
+            while (!valid);
+            return true;
+        }
+        static bool DrawHighScores()
+        {
+            bool valid;
+            do
+            {
+             Console.Clear();
+                 valid = true;
+                DrawTitle(13, 2);
+                Console.SetCursorPosition(0, 12);
+                Console.WriteLine("\tShow scores for:\n\t1:Easy\n\t2:Medium\n\t3:Hard\n\t4:Impossible\n\t5:Clear Scores\n\t6:Back");
+                easyHighScores = SortHighScores(easyHighScores);
+
+                normalHighScores = SortHighScores(normalHighScores);
+
+                hardHighScores = SortHighScores(hardHighScores);
+
+                impossibleHighScores = SortHighScores(impossibleHighScores);
+               
+               
+                switch (Console.ReadKey().Key)
+                {
+                    case ConsoleKey.D1:
+
+                        DisplayHighScores(easyHighScores,"Easy");
+                        return true;
+                    case ConsoleKey.D2:
+                        DisplayHighScores(normalHighScores,"Normal");
+                        return true;
+                    case ConsoleKey.D3:
+                        DisplayHighScores(hardHighScores,"Hard");
+                        return true;
+                    case ConsoleKey.D4:
+                        DisplayHighScores(impossibleHighScores,"Impossible");
+                        return true;
+                    case ConsoleKey.D5:
+                        ClearSelect();
+                        return true;
+                    case ConsoleKey.D6:
+                        return false;
+                    default:
+                        valid = false;
+                        break;
+                }
+            }
+            while (!valid);
+            return true;
+        }
         static void Main(string[] args)
         {
+            easyHighScores = LoadHighScores("easy");
+
+            normalHighScores = LoadHighScores("normal");
+
+            hardHighScores = LoadHighScores("hard");
+
+            impossibleHighScores = LoadHighScores("impossible");
             while (running)
             {
+                
                 Console.Title = "Snake";
                 Console.CursorVisible = false;
                 Console.WindowHeight = 50;
                 Console.Clear();
                 DrawTitle(13, 2);
                 Console.SetCursorPosition(0, 12);
-                Console.WriteLine("\t1:Single Player\n\t2:Multiplayer\n\t3:Exit");
+                Console.WriteLine("\t1:Single Player\n\t2:Multiplayer\n\t3:Scores\n\t4:Exit");
                 switch (Console.ReadKey().Key)
                 {
                     case ConsoleKey.D1:
 
                         if (DifficultySelect())
                         {
-                            numOfPlayers = 5;
+                            if (PlayerSelect())
+                            {
+                           
                             Initialize();
                             SinglePlayerGameLoop();
+                        }
                         }
                         break;
                     case ConsoleKey.D2:
@@ -661,6 +922,15 @@ namespace Snake
 
                         break;
                     case ConsoleKey.D3:
+                         while(DrawHighScores())
+                         {
+                             
+                         }
+                        
+                        
+
+                        break;
+                    case ConsoleKey.D4:
                         running = false;
                         break;
                 }

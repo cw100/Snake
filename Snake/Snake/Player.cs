@@ -10,7 +10,7 @@ namespace Snake
 {
     class Player
     {
-
+        public string username;
         public bool multiplayer = false;
         Thread playerInputThread;
         public int[,] headPosition = new int[1, 2];
@@ -49,12 +49,20 @@ namespace Snake
 
             snakeLength = snakelength;
             currentDirection = Direction.Right;
+            lastDirection = Direction.Right;
             if (playerNumber == 1)
             {
                 upKey = ConsoleKey.W;
                 downKey = ConsoleKey.S;
                 rightKey = ConsoleKey.D;
                 leftKey = ConsoleKey.A;
+            }
+            if (playerNumber == 2)
+            {
+                upKey = ConsoleKey.UpArrow;
+                downKey = ConsoleKey.DownArrow;
+                rightKey = ConsoleKey.RightArrow;
+                leftKey = ConsoleKey.LeftArrow;
             }
             playerInputThread = new Thread(new ThreadStart(PlayerInput));
 
