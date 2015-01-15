@@ -174,10 +174,7 @@ namespace Snake
             {
                 headPosition[0, 1] = gridHeight - 1;
             }
-            if (playerSpeed != 0)
-            {
-                new System.Threading.ManualResetEvent(false).WaitOne(playerSpeed);
-            }
+            
 
         }
         public bool CheckLength()

@@ -14,6 +14,8 @@ namespace Snake
 {
     class Program
     {
+
+        //Varible declaration 
         public static List<Thread> playerThreads = new List<Thread>();
         static int playersDead = 0;
         public static List<Player> players = new List<Player>();
@@ -23,12 +25,9 @@ namespace Snake
         public static Tile[,] Grid;
         public static int numOfPlayers = 1;
         public static Tile[,] previousGrid;
-
         public static List<ScoreObject> easyHighScores;
         public static List<ScoreObject> normalHighScores;
-
         public static List<ScoreObject> hardHighScores;
-
         public static List<ScoreObject> impossibleHighScores;
         public static List<Object> wallList;
         public static Object wall;
@@ -47,35 +46,40 @@ namespace Snake
         static int speedAdded;
         static int startSpeed;
         static int startLength;
-
         static int maxSpeed;
-
         static System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
+        public static ConsoleKeyInfo input;
 
-        static void AddPickup(int gridwidth, int gridheight, int maxpickups)
+
+
+        //Generate new pickup objects
+        static void AddPickup(int gridwidth, int gridheight, int maxpickups) 
         {
-            if (pickupList.Count < currentPickupNo)
+            if (pickupList.Count < currentPickupNo) //Only adds more if less than current max
             {
-                pickup = new Object();
+                pickup = new Object(); 
 
-                pickup.Initialize(randomizer, gridwidth, gridheight, wallList);
+                pickup.Initialize(randomizer, gridwidth, gridheight, wallList); //Creates new pickup
 
-                pickupList.Add(pickup);
+                pickupList.Add(pickup); //Adds to list of pickups
             }
         }
+
+        //Creates game space
         static void CreateGrid(int gridwidth, int gridheight)
         {
-            Grid = new Tile[gridheight, gridwidth];
+            Grid = new Tile[gridheight, gridwidth]; //New array of required lengths
             for (int i = 0; i < gridheight; i++)
             {
                 for (int j = 0; j < gridwidth; j++)
                 {
-                    Grid[i, j] = new Tile();
+                    Grid[i, j] = new Tile(); //Cycles through all array elements and creates blank tile class
                 }
-                Console.WriteLine();
 
             }
         }
+
+        //Draws the inital grid onto the console
         static void DrawGrid()
         {
             Console.Clear();
@@ -86,17 +90,22 @@ namespace Snake
                 {
 
                     Console.ForegroundColor = Grid[i, j].colour;
-                    Console.Write(Grid[i, j].gridIcon);
+                    Console.Write(Grid[i, j].gridIcon); //Cycles through all grid elements and draws their icon and colour
+
                 }
             }
-            Console.SetCursorPosition(0, Console.WindowHeight * 2 / 3);
+
+            Console.SetCursorPosition(0, Console.WindowHeight * 2 / 3);//Puts cursor two thirds of the way down the console
             for (int i = 0; i < Grid.GetLength(1); i++)
             {
-                Console.Write("-");
+                Console.Write("-"); //Creates a border for the game grid
             }
 
-            DrawTitle(13, Console.WindowHeight * 2 / 3);
+            DrawTitle(13, Console.WindowHeight * 2 / 3);//Draws the Snake tile under the game grid
         }
+
+
+        //Creates a border to prevent the player leaving the screen, currently unused
         static void LevelOne()
         {
             wallList = new List<Object>();
@@ -134,11 +143,13 @@ namespace Snake
             }
         }
 
+
+        //Draws the Snake title at required position
         static void DrawTitle(int x, int y)
         {
 
             Console.ForegroundColor = ConsoleColor.Gray;
-            Console.SetCursorPosition(x, y + 1);
+            Console.SetCursorPosition(x, y + 1); //Moves the cursor down a line and to the right x position
 
             Console.Write("     _______..__   __.      ___       __  ___  _______");
 
@@ -157,17 +168,21 @@ namespace Snake
             Console.SetCursorPosition(x, y + 6);
             Console.Write("|_______/    |__| \\__| /__/     \\__\\ |__|\\__\\ |_______|");
         }
+
+
+        //Draws all player scores under game grid
         static void DrawScore()
         {
             Console.ForegroundColor = ConsoleColor.Gray;
             for (int i = 0; i < players.Count; i++)
             {
                 Console.SetCursorPosition(10, Console.WindowHeight * 2 / 3 + 10 +i);
-                players[i].score =((players[i].snakeLength - startLength) * ((difficulty / 3) + 1));
-                Console.Write(players[i].username + "'s score: " + players[i].score);
+                players[i].score =((players[i].snakeLength - startLength) * ((difficulty / 3) + 1));//Creates score and store in player class
+                Console.Write(players[i].username + "'s score: " + players[i].score);//Draws player score and username under the game grid
             }
-
         }
+
+        //Updates the grid to current icons
         static void UpdateGrid()
         {
             for (int i = 0; i < Grid.GetLength(0); i++)
@@ -175,19 +190,21 @@ namespace Snake
                 for (int j = 0; j < Grid.GetLength(1); j++)
                 {
 
-                    if (Grid[i, j].hasChanged == true)
+                    if (Grid[i, j].hasChanged == true)//Only updates if the icon has changed since last update
                     {
 
-                        Console.SetCursorPosition(j, i);
+                        Console.SetCursorPosition(j, i);//Moves cursor to required position
                         Console.ForegroundColor = Grid[i, j].colour;
-                        Console.Write(Grid[i, j].gridIcon);
+                        Console.Write(Grid[i, j].gridIcon);//Changes the old icon to current icon
 
                         Grid[i, j].hasChanged = false;
                     }
-                    Grid[i, j].Update();
+                    Grid[i, j].Update(); //Calls the update method of every Grid Tile
                 }
             }
         }
+
+        //Allows Grid icons to represent the direction the player is going
         static void DirectionConvert(Player player)
         {
             if (player.currentDirection == Player.Direction.Up)
@@ -211,127 +228,148 @@ namespace Snake
                 Grid[player.headPosition[0, 1], player.headPosition[0, 0]].currentDirection = Tile.Direction.Right;
             }
         }
+
+        //Checks if two grid positions are the same
         static bool Collision(int[,] one, int[,] two)
         {
-            if (one[0, 0] == two[0, 0] && one[0, 1] == two[0, 1])
+            if (one[0, 0] == two[0, 0] && one[0, 1] == two[0, 1])//Checks both x and y coordinates 
             {
-                return true;
+                return true; //Returns true if positions are the same
             }
             return false;
         }
-        public static ConsoleKeyInfo input;
+
+        //Input method to give all players the same input, prevents inputs overwriting each other
         static void Input()
         {
             while (true)
             {
-                  input = Console.ReadKey(true);
+                  input = Console.ReadKey(true);//Reads next key input, stops it being shown
                 
             }
         }
 
+
+        //Initializes everything required to start a game
         static void Initialize()
         {
 
-            wallList = new List<Object>();
-            pickupList = new List<Object>();
-            gridHeight = Console.WindowHeight * 2 / 3;
-            gridWidth = Console.WindowWidth;
+            wallList = new List<Object>(); //Resets any walls
+            pickupList = new List<Object>(); //Resets all pickups
+            gridHeight = Console.WindowHeight * 2 / 3; //Sets game grid to two thirds of the console window height
+            gridWidth = Console.WindowWidth; //Sets game grid to the console window width
             gameRunning = true;
-            CreateGrid(gridWidth, gridHeight);
-            startSpeed = 150 - (5 * difficulty);
-            maxPickups = 10;
-            lengthAdded = (2 * difficulty);
-            startLength = (3 * difficulty);
-            pickupNoAdded = 1;
-            speedAdded = (2 * difficulty);
-            currentPickupNo = 1;
-            maxSpeed = 70 - (5 * difficulty);
+            CreateGrid(gridWidth, gridHeight); //Creates new grid
+            startSpeed = 150 - (5 * difficulty); // Sets starting speed of snake depending on difficulty
+            maxPickups = 10; //Sets maximum pickups 
+            lengthAdded = (2 * difficulty); //Sets snake length added when collecting pickup depending on difficulty 
+            startLength = (3 * difficulty); //Sets inital snake length depending on difficulty
+            pickupNoAdded = 1; //Sets amount of extra pickups added when one is collected
+            speedAdded = (difficulty); //Sets the amount the speed is increased by when pickups are collected depending on difficulty 
+            currentPickupNo = 1; //Sets inital amount of pickups
+            maxSpeed = 70 - (5 * difficulty); //Sets the maximum speed 
 
-          
-            players = new List<Player>();
+            players = new List<Player>(); //Creates a blank player list
+
+            //Creates a new player depending on how many the user requested
             for (int i = 1; i <= numOfPlayers; i++)
             {
                 Player player;
 
                 player = new Player();
 
-                player.Initialize(5, 5 + 5 * i, startLength, gridWidth, gridHeight, startSpeed, i);
-                Console.Clear();
+                player.Initialize(5, 5 + 5 * i, startLength, gridWidth, gridHeight, startSpeed, i); //Set inital values for the player
                 
-               
+                Console.Clear();
                 DrawTitle(13, 2);
                 Console.SetCursorPosition(0, 12);
-                Console.WriteLine("\tPlayer "+i+" please enter a username: ");
-                player.username = Console.ReadLine();
-                players.Add(player);
+                Console.WriteLine("\tPlayer "+i+" please enter a username: "); //Asks for username for use in highscores
+                player.username = Console.ReadLine(); //Takes input and stores it in player class
+                players.Add(player); //Store new player in list
             }
 
-            InputThread = new Thread(Input);
-            InputThread.Start();
-            List<Thread> playerThreads = new List<Thread>();
+
+            InputThread = new Thread(Input); 
+            InputThread.Start(); //Begins new input thread that constantly gets console input
+
+
+            List<Thread> playerThreads = new List<Thread>(); //List for all player threads
+
+            //Creates new thread for each player
             foreach (Player plyr in players)
             {
-                Thread playerthread = new Thread(() => PlayerLogic(plyr));
-                playerThreads.Add(playerthread);
+                Thread playerthread = new Thread(() => PlayerLogic(plyr)); //Creates new thread with a variable from the player list
+                playerThreads.Add(playerthread); //Stores the thread
                 
 
             }
 
-            DrawGrid();
+            DrawGrid(); //Draws the intial grid
+
+            //Starts every player thread
             foreach(Thread playerthread in playerThreads)
             {
                 playerthread.Start();
             }
 
         }
+
+
+
+        //Everything required to update the players position on the grid, also handles collisions
         static void PlayerLogic(Player player)
         {
 
             while (true)
             {
-                int[,] previouspos = player.headPosition;
-                player.Update();
+                int[,] previouspos = player.headPosition; // Stores the head position before anything changes
+                player.Update(); //Calls player update method, updating player position numbers
                 DirectionConvert(player);
-                Grid[player.bodyPositions[player.bodyPositions.Count - 1][0, 1], player.bodyPositions[player.bodyPositions.Count - 1][0, 0]].containsHead = false;
-                Grid[player.bodyPositions[player.bodyPositions.Count - 1][0, 1], player.bodyPositions[player.bodyPositions.Count - 1][0, 0]].headNumber -= 1;
+                Grid[player.bodyPositions[player.bodyPositions.Count - 1][0, 1], player.bodyPositions[player.bodyPositions.Count - 1][0, 0]].containsHead = false; //Deletes previous head
+                Grid[player.bodyPositions[player.bodyPositions.Count - 1][0, 1], player.bodyPositions[player.bodyPositions.Count - 1][0, 0]].headNumber -= 1; //Removes a head number, head number allows for collisions with other players heads, without causing collisions with itself
 
-                Grid[player.bodyPositions[player.bodyPositions.Count - 1][0, 1], player.bodyPositions[player.bodyPositions.Count - 1][0, 0]].didContainHead = true;
-
+              
                 Grid[player.headPosition[0, 1], player.headPosition[0, 0]].headNumber += 1;
-                Grid[player.headPosition[0, 1], player.headPosition[0, 0]].containsHead = true;
+
+                Grid[player.headPosition[0, 1], player.headPosition[0, 0]].containsHead = true; //Updates icon in new head position
 
 
-                Grid[player.headPosition[0, 1], player.headPosition[0, 0]].hasChanged = true;
-                Grid[player.headPosition[0, 1], player.headPosition[0, 0]].Update();
 
+                Grid[player.headPosition[0, 1], player.headPosition[0, 0]].Update(); //Calls tile update
 
+                //Wall collision 
                 if (wallList.Count > 0)
                 {
                     for (int i = 0; i < wallList.Count; i++)
                     {
-
                         if (Collision(wallList[i].position, player.headPosition))
                         {
-                            player.active = false;
+                            player.active = false; //Kills player on collision
                         }
                     }
                 }
+
+
+                //Collision with pickups
                 for (int i = 0; i < pickupList.Count; i++)
                 {
                     if (Collision(pickupList[i].position, player.headPosition))
                     {
 
 
-                        Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].didContainPickup = true;
-                        Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].containsPickup = false;
+                        Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].containsPickup = false; //Deletes pickup on collect
 
-                        Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].Update();
-                        pickupList.RemoveAt(i);
-                        player.snakeLength += lengthAdded;
+                        Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].Update(); //Calls tile update
+
+                        pickupList.RemoveAt(i); //Removes collected pickup from the list
+
+                        player.snakeLength += lengthAdded; //Increases snake length 
+
                         if (currentPickupNo < maxPickups)
                         {
-                            currentPickupNo += pickupNoAdded;
+                            currentPickupNo += pickupNoAdded; //Adds a new pickup to the grid if the current amount is lower than max
                         }
+
                         if (player.playerSpeed > maxSpeed)
                         {
                             player.playerSpeed -= speedAdded;
@@ -343,25 +381,26 @@ namespace Snake
 
                     }
                 }
+                
+                
                 foreach (int[,] body in player.bodyPositions)
                 {
 
                     Grid[body[0, 1], body[0, 0]].containsBody = true;
-                    Grid[body[0, 1], body[0, 0]].hasChanged = true;
                     Grid[body[0, 1], body[0, 0]].Update();
 
                 }
-
                 if (player.CheckLength())
                 {
 
                     Grid[player.bodyPositions[0][0, 1], player.bodyPositions[0][0, 0]].didContainBody = true;
                     Grid[player.bodyPositions[0][0, 1], player.bodyPositions[0][0, 0]].containsBody = false;
-                    Grid[player.bodyPositions[0][0, 1], player.bodyPositions[0][0, 0]].hasChanged = true;
+                    Grid[player.bodyPositions[0][0, 1], player.bodyPositions[0][0, 0]].Update();
 
                     player.bodyPositions.RemoveAt(0);
 
                 }
+
                 if (Grid[player.headPosition[0, 1], player.headPosition[0, 0]].containsBody == true)
                 {
                     player.active = false;
@@ -375,6 +414,10 @@ namespace Snake
                     Thread.CurrentThread.Abort();
 
                     Thread.CurrentThread.Join();
+                }
+                if (player.playerSpeed != 0)
+                {
+                    new System.Threading.ManualResetEvent(false).WaitOne(player.playerSpeed);
                 }
 
 
