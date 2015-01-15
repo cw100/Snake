@@ -64,7 +64,11 @@ namespace Snake
                     
                    
                 }
+               
                 clientSocket.Close();
+                Program.serverSocket.Stop();
+                Program.serverThread.Abort();
+                Thread.CurrentThread.Abort();
 
 
             }

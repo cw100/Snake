@@ -542,10 +542,7 @@ namespace Snake
             {
                 playerthread.Abort();
             }
-            if(multiplayer)
-            {
-                clientSocket.Close();
-            }
+            
             Console.ReadKey(true);
            
         }
@@ -991,12 +988,11 @@ namespace Snake
         static void CreateServer()
         {
             Console.Clear();
-            if (!started)
-            {
+            
                 serverThread = new Thread(new ThreadStart(ServerStart));
                 serverThread.Start();
-            }
-
+            
+            
 
         }
         static bool connected = false;
@@ -1102,7 +1098,6 @@ namespace Snake
                 InputThread.Abort();
 
                 InputThread.Join();
-                clientSocket.Close();
                 GameOver();
             }
             else
