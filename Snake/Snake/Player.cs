@@ -52,18 +52,20 @@ namespace Snake
             lastDirection = Direction.Right;
             if (playerNumber == 1)
             {
-                upKey = ConsoleKey.W;
-                downKey = ConsoleKey.S;
-                rightKey = ConsoleKey.D;
-                leftKey = ConsoleKey.A;
+
+                upKey = Program.currentOptions.playerOneUpKey;
+                downKey = Program.currentOptions.playerOneDownKey;
+                rightKey = Program.currentOptions.playerOneRightKey;
+                leftKey = Program.currentOptions.playerOneLeftKey;
             }
             if (playerNumber == 2)
             {
-                upKey = ConsoleKey.UpArrow;
-                downKey = ConsoleKey.DownArrow;
-                rightKey = ConsoleKey.RightArrow;
-                leftKey = ConsoleKey.LeftArrow;
+                upKey = Program.currentOptions.playerTwoUpKey;
+                downKey = Program.currentOptions.playerTwoDownKey;
+                rightKey = Program.currentOptions.playerTwoRightKey;
+                leftKey = Program.currentOptions.playerTwoLeftKey;
             }
+           
             playerInputThread = new Thread(new ThreadStart(PlayerInput));
 
             playerInputThread.Start();
@@ -78,44 +80,84 @@ namespace Snake
             {
                 
                     new System.Threading.ManualResetEvent(false).WaitOne(10);
-                
-                    if (Program.input.Key == upKey)
+                    if (!multiplayer)
                     {
-
-                        if (lastDirection == Direction.Right || lastDirection == Direction.Left)
+                        if (Program.input.Key == upKey)
                         {
-                            currentDirection = Direction.Up;
 
-                        }
-                    }
-                    else
-                        if (Program.input.Key == rightKey)
-                        {
-                            if (lastDirection == Direction.Up || lastDirection == Direction.Down)
+                            if (lastDirection == Direction.Right || lastDirection == Direction.Left)
                             {
-                                currentDirection = Direction.Right;
+                                currentDirection = Direction.Up;
 
                             }
                         }
                         else
-                            if (Program.input.Key == downKey)
+                            if (Program.input.Key == rightKey)
                             {
-                                if (lastDirection == Direction.Right || lastDirection == Direction.Left)
+                                if (lastDirection == Direction.Up || lastDirection == Direction.Down)
                                 {
-                                    currentDirection = Direction.Down;
-                                }
+                                    currentDirection = Direction.Right;
 
+                                }
                             }
                             else
-                                if (Program.input.Key == leftKey)
+                                if (Program.input.Key == downKey)
                                 {
-                                    if (lastDirection == Direction.Up || lastDirection == Direction.Down)
+                                    if (lastDirection == Direction.Right || lastDirection == Direction.Left)
                                     {
-                                        currentDirection = Direction.Left;
+                                        currentDirection = Direction.Down;
                                     }
 
                                 }
-                
+                                else
+                                    if (Program.input.Key == leftKey)
+                                    {
+                                        if (lastDirection == Direction.Up || lastDirection == Direction.Down)
+                                        {
+                                            currentDirection = Direction.Left;
+                                        }
+
+                                    }
+                    }
+                    if (multiplayer)
+                    {
+                        if (input.Key == upKey)
+                        {
+
+                            if (lastDirection == Direction.Right || lastDirection == Direction.Left)
+                            {
+                                currentDirection = Direction.Up;
+
+                            }
+                        }
+                        else
+                            if (input.Key== rightKey)
+                            {
+                                if (lastDirection == Direction.Up || lastDirection == Direction.Down)
+                                {
+                                    currentDirection = Direction.Right;
+
+                                }
+                            }
+                            else
+                                if (input.Key== downKey)
+                                {
+                                    if (lastDirection == Direction.Right || lastDirection == Direction.Left)
+                                    {
+                                        currentDirection = Direction.Down;
+                                    }
+
+                                }
+                                else
+                                    if (input.Key== leftKey)
+                                    {
+                                        if (lastDirection == Direction.Up || lastDirection == Direction.Down)
+                                        {
+                                            currentDirection = Direction.Left;
+                                        }
+
+                                    }
+                    }
             }
 
 

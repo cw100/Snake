@@ -34,11 +34,12 @@ namespace Snake
                 requestCount = 0;
 
 
-                while ((true))
+                while (Program.gameRunning == true)
                 {
+
+
                     try
                     {
-
                         requestCount = requestCount + 1;
                         NetworkStream networkStream = clientSocket.GetStream();
 
@@ -52,16 +53,19 @@ namespace Snake
 
                         sendBytes = Program.SerializeToBytes<Tile[,]>(Program.Grid);
 
-                       networkStream.Write(sendBytes, 0, sendBytes.Length);
-                        
-
+                        networkStream.Write(sendBytes, 0, sendBytes.Length);
                     }
                     catch 
                     {
-                        Thread.CurrentThread.Abort();
-
+                        
                     }
+                    
+                   
+                    
+                   
                 }
+                clientSocket.Close();
+
 
             }
         }

@@ -8,6 +8,8 @@ namespace Snake
 {[Serializable]
     class Tile
     {
+    public bool multiplayergamerunning;
+        public List<int> multiplayerscores = new List<int>();
         public string gridIcon = " ";
         public int headNumber;
         public ConsoleColor colour = ConsoleColor.Gray;
