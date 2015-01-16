@@ -8,8 +8,7 @@ namespace Snake
 {[Serializable]
     class Tile
     {
-    public bool multiplayergamerunning;
-        public List<int> multiplayerscores = new List<int>();
+        public List<int> multiplayerscores = new List<int>();//Used to send score on one tile to clients
         public string gridIcon = " ";
         public int headNumber;
         public ConsoleColor colour = ConsoleColor.Gray;
@@ -34,6 +33,8 @@ namespace Snake
             Right
         }
         public Direction currentDirection= Direction.Right;
+
+    //Checks if tile has updated
         public void TestChange()
         {
 
@@ -43,13 +44,14 @@ namespace Snake
                 
             }
          
-           
-            
        }
+    //Sets icons to correct char
         public void Update()
         {
             TestChange();
 
+
+            //Sets head icon depending on direction
             if (containsHead)
             {
                 colour = ConsoleColor.Red;

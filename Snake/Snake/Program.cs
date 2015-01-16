@@ -23,7 +23,7 @@ namespace Snake
         static int playersDead = 0;
         public static List<Player> players = new List<Player>();
         static Server server = new Server();
-       public static Thread serverThread;
+        public static Thread serverThread;
         static Thread InputThread;
         public static Tile[,] Grid;
         public static int numOfPlayers = 1;
@@ -77,6 +77,11 @@ namespace Snake
                 for (int j = 0; j < gridwidth; j++)
                 {
                     Grid[i, j] = new Tile(); //Cycles through all array elements and creates blank tile class
+
+                    Grid[i, j].didContainBody = false;
+                    Grid[i, j].didContainHead = false;
+                    Grid[i, j].didContainPickup = false;
+                    Grid[i, j].didContainWall = false;
                 }
 
             }
@@ -183,7 +188,7 @@ namespace Snake
                 players[i].score = ((players[i].snakeLength - startLength) * ((difficulty / 3) + 1));//Creates score and store in player class
                 Console.Write(players[i].username + "'s score: " + players[i].score);//Draws player score and username under the game grid
             }
-            if(multiplayer)
+            if (multiplayer)
             {
                 if (players.Count > 0)
                 {
@@ -196,14 +201,14 @@ namespace Snake
                                 Grid[0, 0].multiplayerscores.Add(1);
                             }
                         }
-                        Grid[0,0].multiplayerscores[i] = ((players[i].snakeLength - startLength) * ((difficulty / 3) + 1));//Creates score and store in player class
+                        Grid[0, 0].multiplayerscores[i] = ((players[i].snakeLength - startLength) * ((difficulty / 3) + 1));//Creates score and store in player class
                     }
                 }
                 for (int i = 0; i < Grid[0, 0].multiplayerscores.Count; i++)
                 {
 
                     Console.SetCursorPosition(10, Console.WindowHeight * 2 / 3 + 10 + i);
-                    Console.Write("Player " + (i+1)+ "'s score: " + Grid[0, 0].multiplayerscores[i]);//Draws player score and username under the game grid
+                    Console.Write("Player " + (i + 1) + "'s score: " + Grid[0, 0].multiplayerscores[i]);//Draws player score and username under the game grid
                 }
             }
         }
@@ -215,7 +220,12 @@ namespace Snake
             {
                 for (int j = 0; j < Grid.GetLength(1); j++)
                 {
-
+                    //Fore checking updates
+                    Grid[i, j].didContainBody = Grid[i, j].containsBody;
+                    Grid[i, j].didContainHead = Grid[i, j].containsHead;
+                    Grid[i, j].didContainPickup = Grid[i, j].containsPickup;
+                    Grid[i, j].didContainWall = Grid[i, j].containsWall;
+                    Grid[i, j].Update(); //Calls the update method of every Grid Tile
                     if (Grid[i, j].hasChanged == true)//Only updates if the icon has changed since last update
                     {
 
@@ -225,7 +235,8 @@ namespace Snake
 
                         Grid[i, j].hasChanged = false;
                     }
-                    Grid[i, j].Update(); //Calls the update method of every Grid Tile
+
+
                 }
             }
         }
@@ -294,7 +305,13 @@ namespace Snake
             speedAdded = (difficulty); //Sets the amount the speed is increased by when pickups are collected depending on difficulty 
             currentPickupNo = 1; //Sets inital amount of pickups
             maxSpeed = 70 - (5 * difficulty); //Sets the maximum speed 
-
+            if (numOfPlayers > 0)
+            {
+                if (WallToggle())
+                {
+                    LevelOne();
+                }
+            }
             players = new List<Player>(); //Creates a blank player list
 
             //Creates a new player depending on how many the user requested
@@ -329,7 +346,6 @@ namespace Snake
             InputThread = new Thread(Input);
             InputThread.Start(); //Begins new input thread that constantly gets console input
 
-
             playerThreads = new List<Thread>(); //List for all player threads
 
             //Creates new thread for each player
@@ -341,7 +357,7 @@ namespace Snake
 
             }
 
-           
+
 
             //Starts every player thread
             if (!multiplayer)
@@ -349,7 +365,7 @@ namespace Snake
                 DrawGrid(); //Draws the intial grid
                 foreach (Thread playerthread in playerThreads)
                 {
-                    playerthread.Start();
+                    playerthread.Start(); //Starts the thread
                 }
             }
 
@@ -411,10 +427,10 @@ namespace Snake
                             currentPickupNo += pickupNoAdded; //Adds a new pickup to the grid if the current amount is lower than max
                         }
 
-                        if (player.playerSpeed > maxSpeed)
+                        if (player.playerSpeed > maxSpeed) //If Player is going slower than the max,  speed is increased on pickup collect
                         {
                             player.playerSpeed -= speedAdded;
-                            if (player.playerSpeed > maxSpeed)
+                            if (player.playerSpeed < maxSpeed) //If speed goes over max, set to max
                             {
                                 player.playerSpeed = maxSpeed;
                             }
@@ -427,59 +443,60 @@ namespace Snake
                 foreach (int[,] body in player.bodyPositions)
                 {
 
-                    Grid[body[0, 1], body[0, 0]].containsBody = true;
+                    Grid[body[0, 1], body[0, 0]].containsBody = true; //Adds every snake body for this player to the grid
                     Grid[body[0, 1], body[0, 0]].Update();
 
                 }
-                if (player.CheckLength())
+                if (player.CheckLength()) //Calls a method for checking if the snake length is higher than max
                 {
 
-                    Grid[player.bodyPositions[0][0, 1], player.bodyPositions[0][0, 0]].didContainBody = true;
-                    Grid[player.bodyPositions[0][0, 1], player.bodyPositions[0][0, 0]].containsBody = false;
+                    Grid[player.bodyPositions[0][0, 1], player.bodyPositions[0][0, 0]].didContainBody = true; //Needed to prevent desyncs in multiplayer
+                    Grid[player.bodyPositions[0][0, 1], player.bodyPositions[0][0, 0]].containsBody = false; // Removes the oldest body in the list from the grid
                     Grid[player.bodyPositions[0][0, 1], player.bodyPositions[0][0, 0]].Update();
 
-                    player.bodyPositions.RemoveAt(0);
+                    player.bodyPositions.RemoveAt(0); //Removes the oldest body in the list from the list
 
                 }
 
-                if (Grid[player.headPosition[0, 1], player.headPosition[0, 0]].containsBody == true)
+                if (Grid[player.headPosition[0, 1], player.headPosition[0, 0]].containsBody == true) //Collisions with bodys
                 {
                     player.active = false;
                 }
-                if (Grid[player.headPosition[0, 1], player.headPosition[0, 0]].containsHead == true && Grid[player.headPosition[0, 1], player.headPosition[0, 0]].headNumber > 1)
+                if (Grid[player.headPosition[0, 1], player.headPosition[0, 0]].containsHead == true && Grid[player.headPosition[0, 1], player.headPosition[0, 0]].headNumber > 1) //Collisions with other player heads, head number prevents collision with own head
                 {
                     player.active = false;
                 }
                 if (player.active == false)
                 {
-                    Thread.CurrentThread.Abort();
-
+                    Thread.CurrentThread.Abort(); //Stops the current players thread if player dies
                     Thread.CurrentThread.Join();
                 }
                 if (player.playerSpeed != 0)
                 {
-                    new System.Threading.ManualResetEvent(false).WaitOne(player.playerSpeed);
+                    new System.Threading.ManualResetEvent(false).WaitOne(player.playerSpeed); //Pauses thread, allows snake to move diferent speeds
                 }
 
 
             }
         }
+
+
+        //Handles adding pickups and walls to the grid
         static void GridLogic()
         {
 
             for (int i = 0; i < pickupList.Count; i++)
             {
 
-                Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].containsPickup = true;
+                Grid[pickupList[i].position[0, 1], pickupList[i].position[0, 0]].containsPickup = true; //Adds every pickup to grid
 
             }
-            
-            if (0< wallList.Count)
+
+            if (0 < wallList.Count)
             {
                 for (int i = 0; i < wallList.Count; i++)
                 {
-
-                    Grid[wallList[i].position[0, 1], wallList[i].position[0, 0]].containsWall = true;
+                    Grid[wallList[i].position[0, 1], wallList[i].position[0, 0]].containsWall = true; // Adds every wall to the grid
                 }
 
             }
@@ -487,22 +504,34 @@ namespace Snake
 
             UpdateGrid();
         }
+
+
+        //Method that is called on every game end
         static void GameOver()
         {
-            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.ForegroundColor = ConsoleColor.Gray; // Resets all console colour
             Console.Clear();
-            Console.SetCursorPosition((gridWidth - 9) / 2, gridHeight / 2);
+            Console.SetCursorPosition((gridWidth / 2) - 4, gridHeight / 2); //Moves cursor to middle of screan
 
+            started = false; //Stops the server sockets, if running
             Console.Write("Game Over");
+
+
             if (!multiplayer)
             {
+
+                //Cycles through every player and displays and saves score
                 for (int i = 0; i < players.Count; i++)
                 {
-                    Console.SetCursorPosition((gridWidth - 9) / 2, 1 + (gridHeight / 2) + i);
-                    Console.Write(players[i].username + "'s score: " + players[i].score);
-                    ScoreObject score = new ScoreObject();
+                    Console.SetCursorPosition((gridWidth / 2) - 4, 1 + (gridHeight / 2) + i);
+                    Console.Write(players[i].username + "'s score: " + players[i].score); //Displays score
+
+
+                    ScoreObject score = new ScoreObject(); //Creates new score to save to lists
                     score.score = players[i].score;
                     score.username = players[i].username;
+
+                    //Saves score to list depending on difficulty
                     if (difficulty == 1)
                     {
                         easyHighScores.Add(score);
@@ -520,99 +549,120 @@ namespace Snake
                         impossibleHighScores.Add(score);
                     }
                 }
+
+                //Saves scores to xml file
                 SaveHighScores(easyHighScores, "easy");
                 SaveHighScores(normalHighScores, "normal");
                 SaveHighScores(hardHighScores, "hard");
                 SaveHighScores(impossibleHighScores, "impossible");
             }
-            if(multiplayer)
-            {
-                for (int i = 0; i < Grid[0, 0].multiplayerscores.Count; i++)
-                {
 
-                    Console.SetCursorPosition((gridWidth - 9) / 2, 1 + (gridHeight / 2) + i);
-                    Console.Write("Player " + (i+1) + "'s score: " + Grid[0, 0].multiplayerscores[i]);//Draws player score and username under the game grid
+
+            if (multiplayer)
+            {
+                for (int i = 0; i < Grid[0, 0].multiplayerscores.Count; i++) // Uses Grid[0,0] to save and load scores for lan multiplayer
+                {
+                    Console.SetCursorPosition((gridWidth / 2) - 4, 1 + (gridHeight / 2) + i);
+                    Console.Write("Player " + (i + 1) + "'s score: " + Grid[0, 0].multiplayerscores[i]);//Draws player score and username under the game grid
                 }
             }
+
+
             foreach (Player player in players)
             {
-                player.GameEnd();
+                player.GameEnd();//Ends all the input threads for the players
             }
             foreach (Thread playerthread in playerThreads)
             {
-                playerthread.Abort();
+                playerthread.Abort();//Ends all the player threads, if not already ended
             }
-            
-            Console.ReadKey(true);
-           
+
+            Console.ReadKey(true); //Waits for input before returning to main menu
+
         }
 
 
-
+        //Saves score lists to xml file
         static void SaveHighScores(List<ScoreObject> highscore, string filename)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(List<ScoreObject>));
-            string location = @"" + filename + "Scores.xml";
-            using (TextWriter writer = new StreamWriter(location))
+            XmlSerializer serializer = new XmlSerializer(typeof(List<ScoreObject>)); //Creates a serializer for ScoreObject lists
+
+
+            string location = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\Snake\" + filename + @"Scores.xml"; //Sets the file location and name, stored in %appdata% folder
+
+
+            using (TextWriter writer = new StreamWriter(location)) //Creates a textwriter for saving the xml file, opening the xml file
             {
-                serializer.Serialize(writer, highscore);
+                serializer.Serialize(writer, highscore); //Serializes the highscore list to a xml file
             }
 
 
         }
+
+
+        //Resets the highscore file to blank
         static void ClearHighScores(string filename)
         {
-            List<ScoreObject> blank = new List<ScoreObject>();
-            XmlSerializer serializer = new XmlSerializer(typeof(List<ScoreObject>));
-            string location = @"" + filename + "Scores.xml";
-            using (TextWriter writer = new StreamWriter(location))
+            List<ScoreObject> blank = new List<ScoreObject>(); //New blank list for reseting file
+            XmlSerializer serializer = new XmlSerializer(typeof(List<ScoreObject>)); //Creates a serializer for ScoreObject lists
+            string location = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\Snake\" + filename + @"Scores.xml"; //Sets the file location and name, stored in %appdata% folder
+
+            using (TextWriter writer = new StreamWriter(location)) //Creates a textwriter for saving the xml file, opening the xml file
             {
-                serializer.Serialize(writer, blank);
+                serializer.Serialize(writer, blank); //Serializes the blank list to a xml file, which resets the file to blank
+
             }
 
         }
+
+        //Opens an xml file and deserializes the List contained in the file, returning it. If file doesn't exists file is created
         static List<ScoreObject> LoadHighScores(string filename)
         {
-            List<ScoreObject> highscore = new List<ScoreObject>();
-            StreamReader streamReader;
-            XmlSerializer serializer = new XmlSerializer(typeof(List<ScoreObject>));
-            string location = @"" + filename + "Scores.xml";
+            List<ScoreObject> highscore = new List<ScoreObject>();// List for returning
+            StreamReader streamReader;//Stream reader for opening file
+            XmlSerializer serializer = new XmlSerializer(typeof(List<ScoreObject>));//Xml serializer for deserializing the xml file to the List
+            string location = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\Snake\" + filename + @"Scores.xml"; //Sets the file location and name, stored in %appdata% folder
+
             try
             {
-                streamReader = new StreamReader(location);
+                streamReader = new StreamReader(location); //Trys to open file
             }
             catch
             {
                 using (TextWriter writer = new StreamWriter(location))
                 {
-                    serializer.Serialize(writer, highscore);
+                    serializer.Serialize(writer, highscore);//Creates blank file if it doesn't exist
                 }
                 streamReader = new StreamReader(location);
             }
 
 
-            highscore = (List<ScoreObject>)serializer.Deserialize(streamReader);
-            streamReader.Close();
-            return highscore;
+            highscore = (List<ScoreObject>)serializer.Deserialize(streamReader); //Deserializes the xml file to List
+            streamReader.Close();//Closes the stream reader
+            return highscore; //Returns to List from the file
         }
 
+
+        //For serializing Options class to xml file
         static void SaveOptions(Options options)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(Options));
-            string location = @"Options.xml";
+            XmlSerializer serializer = new XmlSerializer(typeof(Options)); //Creates a Options class xml serializer
+            string location = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\Snake\" + @"Options.xml"; //Sets the file location and name, stored in %appdata% folder
+
             using (TextWriter writer = new StreamWriter(location))
             {
-                serializer.Serialize(writer, options);
+                serializer.Serialize(writer, options);//Serializes options class to file
             }
 
-
         }
+
+        //Resets file options to default, not currently used
         static void DefaultOptions()
         {
 
             Options options = new Options();
             XmlSerializer serializer = new XmlSerializer(typeof(List<ScoreObject>));
-            string location = @"Options.xml";
+            string location = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\Snake\" + @"Options.xml";
             using (TextWriter writer = new StreamWriter(location))
             {
                 serializer.Serialize(writer, options);
@@ -621,89 +671,100 @@ namespace Snake
 
         }
 
+        // Loads and deserializes the options xml, sets options in file to current options
         static Options LoadOptions()
         {
-            Options options = new Options();
+            Options options = new Options(); //Creates blank options class for returning
             StreamReader streamReader;
-            XmlSerializer serializer = new XmlSerializer(typeof(Options));
-            string location = @"Options.xml";
+            XmlSerializer serializer = new XmlSerializer(typeof(Options)); //Creates a Options class xml serializer
+            string location = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\Snake\" + @"Options.xml"; //Sets the file location and name, stored in %appdata% folder
+
             try
             {
-                streamReader = new StreamReader(location);
+                streamReader = new StreamReader(location); //Attempts to open the options xml file
             }
             catch
             {
                 using (TextWriter writer = new StreamWriter(location))
                 {
-                    serializer.Serialize(writer, options);
+                    serializer.Serialize(writer, options); //Creates the file if it doesn't exist
                 }
                 streamReader = new StreamReader(location);
             }
 
 
-            options = (Options)serializer.Deserialize(streamReader);
-            streamReader.Close();
-            return options;
+            options = (Options)serializer.Deserialize(streamReader); //Sets the options in the file to the options class to be returned
+            streamReader.Close(); //Closes the file
+            return options; //Returns options
         }
 
-
+        //Sorts the Highscores into desending order with a Bubble sort
         static List<ScoreObject> SortHighScores(List<ScoreObject> highscore)
         {
-            ScoreObject scoreHolder = new ScoreObject();
-            bool sorted = false;
-            while (!sorted)
+            ScoreObject scoreHolder = new ScoreObject();//For holding scores temporarily
+
+            bool sorted = false;//Creats sorted bool
+
+            while (!sorted) //Continues to sort if not finished
             {
-                sorted = true;
-                for (int i = 0; i < highscore.Count - 1; i++)
+                sorted = true; //Assumes its sorted
+                for (int i = 0; i < highscore.Count - 1; i++) //Cycles through all highscores
                 {
-                    if (highscore[i].score < highscore[i + 1].score)
+                    if (highscore[i].score < highscore[i + 1].score) // If current score is lower then next, swap them
                     {
                         scoreHolder = highscore[i];
                         highscore[i] = highscore[i + 1];
                         highscore[i + 1] = scoreHolder;
-                        sorted = false;
+                        sorted = false; //Forces another cycle of the code to check if its finished
                     }
                 }
             }
-            return highscore;
+            return highscore;//Returns the sorted list
         }
 
+
+        //Draws the highscores onto the console
         static void DisplayHighScores(List<ScoreObject> highscore, string type)
         {
+
+            //Clears screen and draws the title
             Console.Clear();
             DrawTitle((currentOptions.windowWidth / 2) - 27, 2);
             Console.SetCursorPosition(0, 12);
 
-            Console.WriteLine("\t" + type + " scores");
+
+            Console.WriteLine("\t" + type + " scores"); //Tells user what type of scores they're looking at
             Console.WriteLine();
             foreach (ScoreObject score in highscore)
             {
 
-                Console.WriteLine("\t" + score.username + " " + score.score);
+                Console.WriteLine("\t" + score.username + " " + score.score); //Displays each score in order 
             }
-            Console.ReadKey();
+            Console.ReadKey(true); //Waits for user input
 
         }
 
 
 
-
-        static void SinglePlayerGameLoop()
+        //Loop that handles game logic
+        static void GameLoop()
         {
-            while (gameRunning)
+            while (gameRunning)//Only runs while game is running
             {
-                AddPickup(gridWidth, gridHeight, maxPickups);
-                DrawScore();
-                GridLogic();
-                playersDead = 0;
+                AddPickup(gridWidth, gridHeight, maxPickups);//Trys to add a pickup
+                DrawScore();//Constantly draws the current score to screen
+                GridLogic();//Logic for adding pickups and walls to grid
+                playersDead = 0;//Resets amount of dead players
                 foreach (Player player in players)
                 {
                     if (player.active == false)
                     {
-                        playersDead++;
+                        playersDead++;//Counts number of dead players
                     }
 
                 }
+
+                //Ends the game if all players are dead
                 if (playersDead == players.Count)
                 {
                     InputThread.Abort();
@@ -711,58 +772,71 @@ namespace Snake
                     InputThread.Join();
 
                     gameRunning = false;
+                    GameOver();//Call all logic required to end the game
                 }
             }
 
-            GameOver();
+
 
         }
 
+        //Logic to let users change controls
         static bool EditKeyBindingsMenu()
         {
-            bool valid = true;
+            bool valid = true;//For checking user entered the right input
             do
             {
+                //Draws title
                 Console.Clear();
                 valid = true;
                 DrawTitle((currentOptions.windowWidth / 2) - 27, 2);
+
+
+
                 Console.SetCursorPosition(0, 12);
-                Console.WriteLine("\tEdit Bindings for:\n\t1:Player One\n\t2:Player Two\n\t3:Back");
-                switch (Console.ReadKey().Key)
+                Console.WriteLine("\tEdit Bindings for:\n\t1:Player One\n\t2:Player Two\n\t3:Back");//Writes menu info
+
+                //Menu
+                switch (Console.ReadKey(true).Key)
                 {
                     case ConsoleKey.D1:
-                        while (EditBindings("one"))
+                        while (EditBindings("one"))//Opens the bindings menu for player one, keeps open until user exits or changes something
                         {
 
                         }
-                        SaveOptions(currentOptions);
-                        return true;
+                        SaveOptions(currentOptions);//Saves binding changes
+                        return true;//Keeps user in the menu
                     case ConsoleKey.D2:
-                        while (EditBindings("two"))
+                        while (EditBindings("two"))//Opens the bindings menu for player tow, keeps open until user exits or changes something
                         {
 
                         }
-                        SaveOptions(currentOptions);
-                        return true;
+                        SaveOptions(currentOptions);//Saves binding changes
+                        return true;//Keeps user in the menu
 
                     case ConsoleKey.D3:
-                        return false;
+                        return false;//Exit menu
                     default:
-                        valid = false;
+                        valid = false;//Input is wrong
                         break;
                 }
             }
-            while (!valid);
-            return true;
+            while (!valid);//Keeps menu going while input is wrong
+            return true;//Keeps user in the menu
         }
+
+        //For editing key bindings
         public static bool EditBindings(string player)
         {
             bool valid = true;
             do
             {
+                //Draws title
                 Console.Clear();
                 valid = true;
                 DrawTitle((currentOptions.windowWidth / 2) - 27, 2);
+
+                //Menus for each player, displays current key bindings
                 Console.SetCursorPosition(0, 12);
                 if (player == "one")
                 {
@@ -784,13 +858,17 @@ namespace Snake
                         "\n\t5:Defaults" +
                         "\n\t6:Back");
                 }
-                switch (Console.ReadKey().Key)
+
+                //Menu selection
+                switch (Console.ReadKey(true).Key)
                 {
                     case ConsoleKey.D1:
                         Console.Clear();
                         DrawTitle((currentOptions.windowWidth / 2) - 27, 2);
                         Console.SetCursorPosition(0, 12);
+
                         Console.WriteLine("\tPlease select new Move Up for Player " + player + ":");
+                        //Sets user input to the binding for that key
                         if (player == "one")
                         {
                             currentOptions.playerOneUpKey = Console.ReadKey(true).Key;
@@ -804,7 +882,9 @@ namespace Snake
                         Console.Clear();
                         DrawTitle((currentOptions.windowWidth / 2) - 27, 2);
                         Console.SetCursorPosition(0, 12);
+
                         Console.WriteLine("\tPlease select new Move Left for Player " + player + ":");
+                        //Sets user input to the binding for that key
                         if (player == "one")
                         {
                             currentOptions.playerOneLeftKey = Console.ReadKey(true).Key;
@@ -819,6 +899,7 @@ namespace Snake
                         DrawTitle((currentOptions.windowWidth / 2) - 27, 2);
                         Console.SetCursorPosition(0, 12);
                         Console.WriteLine("\tPlease select new Move Right for Player " + player + ":");
+                        //Sets user input to the binding for that key
                         if (player == "one")
                         {
                             currentOptions.playerOneRightKey = Console.ReadKey(true).Key;
@@ -832,6 +913,7 @@ namespace Snake
                         Console.Clear();
                         DrawTitle((currentOptions.windowWidth / 2) - 27, 2);
                         Console.SetCursorPosition(0, 12);
+                        //Sets user input to the binding for that key
                         Console.WriteLine("\tPlease select new Move Down for Player " + player + ":");
                         if (player == "one")
                         {
@@ -844,7 +926,11 @@ namespace Snake
                         return true;
 
                     case ConsoleKey.D5:
-                        Options options = new Options();
+
+                        Options options = new Options();//Creates blank option class with default keys
+
+
+                        //Sets user input to default
                         if (player == "one")
                         {
                             currentOptions.playerOneUpKey = options.playerOneUpKey;
@@ -873,6 +959,7 @@ namespace Snake
             return true;
         }
 
+        //Menu for selecting difficulty
         static bool DifficultySelect()
         {
             bool valid = true;
@@ -882,8 +969,11 @@ namespace Snake
                 valid = true;
                 DrawTitle((currentOptions.windowWidth / 2) - 27, 2);
                 Console.SetCursorPosition(0, 12);
+
+                //Menu
                 Console.WriteLine("\t1:Easy\n\t2:Medium\n\t3:Hard\n\t4:Impossible\n\t5:Back");
-                switch (Console.ReadKey().Key)
+                //Sets difficulty number depending on selection
+                switch (Console.ReadKey(true).Key)
                 {
                     case ConsoleKey.D1:
 
@@ -909,6 +999,8 @@ namespace Snake
             while (!valid);
             return true;
         }
+
+        //Menu to select amount of players
         static bool PlayerSelect()
         {
             bool valid = true;
@@ -918,8 +1010,12 @@ namespace Snake
                 valid = true;
                 DrawTitle((currentOptions.windowWidth / 2) - 27, 2);
                 Console.SetCursorPosition(0, 12);
+
+
                 Console.WriteLine("\tHow many players? (max of 2):");
-                switch (Console.ReadKey().Key)
+
+                //Menu to select amount of players
+                switch (Console.ReadKey(true).Key)
                 {
                     case ConsoleKey.D1:
 
@@ -942,17 +1038,22 @@ namespace Snake
             while (!valid);
             return true;
         }
+
+        //Asks user if they want walls
         static bool WallToggle()
         {
             bool valid = true;
             do
             {
-
                 Console.Clear();
-                Console.WriteLine("Walls?");
-                Console.WriteLine("\t1:Yes\n\t2:No");
                 valid = true;
-                switch (Console.ReadKey().Key)
+                DrawTitle((currentOptions.windowWidth / 2) - 27, 2);
+                Console.SetCursorPosition(0, 12);
+
+                Console.WriteLine("\tWalls?");
+                Console.WriteLine("\t1:Yes\n\t2:No");
+                //Menu that returns true if yes and false if no
+                switch (Console.ReadKey(true).Key)
                 {
                     case ConsoleKey.D1:
                         return true;
@@ -966,117 +1067,133 @@ namespace Snake
             while (!valid);
             return true;
         }
-        public static byte[] SerializeToBytes<T>(T item)
+
+        //Serializes any object to a byte array,for networking
+        public static byte[] SerializeToBytes<T>(T item)//T item can be any object
         {
-            var formatter = new BinaryFormatter();
-            using (var stream = new MemoryStream())
+            var formatter = new BinaryFormatter(); //Creates a Binaryformater 
+            using (var stream = new MemoryStream())//Stream to contain serialized object
             {
-                formatter.Serialize(stream, item);
-                stream.Seek(0, SeekOrigin.Begin);
-                return stream.ToArray();
+                formatter.Serialize(stream, item);//Serializes the object onto the memory stream
+                stream.Seek(0, SeekOrigin.Begin);//Sets postition in the stream to begining
+                return stream.ToArray();//Returns serialized byte array
             }
         }
+
+
+        //Deserialize a byte array,for networking
         public static object DeserializeFromBytes(byte[] bytes)
         {
             var formatter = new BinaryFormatter();
             using (var stream = new MemoryStream(bytes))
             {
-                return formatter.Deserialize(stream);
+                return formatter.Deserialize(stream); //Returns the deserialized BinaryFormatter
             }
         }
-
+        //Starts the serverThread
         static void CreateServer()
         {
-            Console.Clear();
-            
-                serverThread = new Thread(new ThreadStart(ServerStart));
-                serverThread.Start();
-            
-            
+            serverThread = new Thread(new ThreadStart(ServerStart));//Creates new thread
+            serverThread.Start();//Starts thread
 
         }
+
+        //Variables for network
         static bool connected = false;
-        static bool started = false;
+        public static bool started = false;
         public static TcpListener serverSocket;
+
         static void ServerStart()
         {
 
-             serverSocket = new TcpListener(8888);
-            TcpClient clientSocket = default(TcpClient);
-            int counter = 0;
-            serverSocket.Start();
-            started = true;
-            counter = 0;
-            while ((true))
+            serverSocket = new TcpListener(8888); //Creates new TcpListener at port 8888
+            TcpClient clientSocket = default(TcpClient); // Creates new TcpClient
+            int counter = 0;//For numbering clients
+            serverSocket.Start();//Begins the TcpListener
+            started = true;//Server has started
+            counter = 0;//Resests counter
+
+            //Loop used to connect multiple clients, currently only one can connect
+            while (!connected)
             {
                 counter += 1;
-                clientSocket = serverSocket.AcceptTcpClient();
-                Server client = new Server();
-                client.startClient(clientSocket, counter);
+                clientSocket = serverSocket.AcceptTcpClient();//Waits for connection with client
+                Server client = new Server();//New server class
+                client.startClient(clientSocket, counter);//Starts new client connection
                 connected = true;
+
             }
+            while (gameRunning)
+            {
+                Thread.Sleep(100);//Waits for game end
+            }
+            //Closes connections any abort thread on game end
+            serverSocket.Stop();
+            clientSocket.Close();
+            Thread.CurrentThread.Abort();
         }
 
 
 
-
+        //Method for all client logic
         static void ClientStart()
         {
-            System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
-            bool valid = true;
-            int count = 0;
-            Console.WriteLine("\tPlease enter a ip address:");
-            string ipAddress = Console.ReadLine();
-            Console.Write("\tConnecting");
+
+            TcpClient clientSocket = new TcpClient();//New TcpClient
+            bool valid = true;//Validation for checking connection timeout
+            int count = 0;//Timeout count
+            Console.WriteLine("\tPlease enter a ip address:");//Request ip
+            string ipAddress = Console.ReadLine();//Takes ip input, no validation as connection will timeout if wrong
+            Console.Write("\tConnecting");//Displayed until connection or timeout
             do
             {
 
                 try
                 {
 
-                    valid = true;
-                    clientSocket.Connect(ipAddress, 8888);
-                    
+                    valid = true;//Valid if connected
+                    clientSocket.Connect(ipAddress, 8888);//Trys to connect to given ip on port 8888
+
                 }
                 catch
                 {
                     valid = false;
-                    count++;
-                    Console.Write(".");
+                    count++;//Plus one to the count
+                    Console.Write(".");//Adds a dot to the connecting
                     Thread.Sleep(1);
                 }
             }
-            while (count<=5 && valid == false);
-            if (count < 5)
+            while (count <= 5 && valid == false);//Waits for 5 loops
+            if (count < 5)//Count must be <5 if connected
             {
 
-                Initialize();
-                DrawGrid();
+                Initialize();//Initilize gameboard and input
+                DrawGrid();//Draws inital grid
 
 
-                while (clientSocket.Connected)
+                while (clientSocket.Connected)//Only runs while socket connected
                 {
 
 
                     try
                     {
-                        NetworkStream serverStream = clientSocket.GetStream();
-                        byte[] outStream = SerializeToBytes<ConsoleKeyInfo>(input);
+                        NetworkStream serverStream = clientSocket.GetStream(); //Sets the serverStream to the client sockets NetworkStream
+                        byte[] outStream = SerializeToBytes<ConsoleKeyInfo>(input);//Serializes the current key input to a byte array
 
 
-                        serverStream.Write(outStream, 0, outStream.Length);
-                        serverStream.Flush();
+                        serverStream.Write(outStream, 0, outStream.Length);//Writes the input byte array to the serverStream
+                        serverStream.Flush();//Removes the current data from the stream
 
-                        byte[] inStream = new byte[300000];
-                        serverStream.Read(inStream, 0, 300000);
-                        previousGrid = Grid;
-                        Grid = (Tile[,])DeserializeFromBytes(inStream);
+                        byte[] inStream = new byte[300000];//Creates new byte array for incoming byte array data
+                        serverStream.Read(inStream, 0, 300000);//Reads the current data from the stream
+                        previousGrid = Grid;//Sets previousGrid to current grid, for knowing which tiles have changed
+                        Grid = (Tile[,])DeserializeFromBytes(inStream);//Deserializes the current incoming byte array into a Tile class array and sets the current grid to it
 
+                        //For making sure all tiles on the grid are updated
                         for (int i = 0; i < Grid.GetLength(0); i++)
                         {
                             for (int j = 0; j < Grid.GetLength(1); j++)
                             {
-
                                 Grid[i, j].didContainWall = previousGrid[i, j].containsWall;
                                 Grid[i, j].didContainHead = previousGrid[i, j].containsHead;
                                 Grid[i, j].didContainBody = previousGrid[i, j].containsBody;
@@ -1087,33 +1204,33 @@ namespace Snake
 
 
 
-                        DrawScore();
-                        UpdateGrid();
+                        DrawScore();//Draws the score onto the screen
+                        UpdateGrid();//Updates the displayed grid
                     }
                     catch
                     {
 
                     }
                 }
-                InputThread.Abort();
+                InputThread.Abort();//Ends input thread on game over
 
                 InputThread.Join();
-                GameOver();
+                GameOver();//Calls game over logic
             }
             else
             {
-                Console.WriteLine("Connection timed out");
+                Console.WriteLine("Connection timed out");//If the count hits 5 the connection times out
                 Console.ReadKey(true);
 
             }
-                
-        
-
- }
 
 
 
-        
+        }
+
+
+
+        //Menu for selecting server or client
         static void MultiplayerSelect()
         {
             Console.Clear();
@@ -1121,45 +1238,58 @@ namespace Snake
             Console.SetCursorPosition(0, 12);
             Console.WriteLine("\t1:Server\n\t2:Client\n\t3:Back");
 
+
             switch (Console.ReadKey(true).Key)
             {
                 case ConsoleKey.D1:
-                    numOfPlayers = 2;
-
-                    CreateServer();
-                    Initialize();
-                    do
+                    if (DifficultySelect())
                     {
-                        Console.Clear();
-                        DrawTitle((currentOptions.windowWidth / 2) - 27, 2);
-                        Console.SetCursorPosition(0, 12);
-                        Console.WriteLine("Waiting for players...");
-                        Thread.Sleep(100);
-                        if(connected)
+                        numOfPlayers = 2;//Sets number of players on server to 2
+
+                        CreateServer();//Starts the server
+                        Initialize();
+                        //Loops while server isn't connected
+                        do
                         {
-                            
-                            DrawGrid();
-                            foreach (Thread playerthread in playerThreads)
+                            Console.Clear();
+                            DrawTitle((currentOptions.windowWidth / 2) - 27, 2);
+                            Console.SetCursorPosition(0, 12);
+
+
+                            Console.WriteLine("Waiting for players...");
+                            Thread.Sleep(100);
+
+                            //Starts game if connected
+                            if (connected)
                             {
-                                playerthread.Start();
+
+                                DrawGrid(); //Draws inital grid
+                                foreach (Thread playerthread in playerThreads)
+                                {
+                                    playerthread.Start();//Begins all the player threads
+                                }
+
+                                GameLoop();//Starts the game
                             }
-                            SinglePlayerGameLoop();
-                    }
-                        
+
+
+
+                        }
+                        while (!connected);
 
                     }
-                    while (!connected);
-
-
                     break;
                 case ConsoleKey.D2:
-                    numOfPlayers = 0;
-                    ClientStart();
+                    numOfPlayers = 0;//Sets players to 0 for the client, client only sends input key, does no game logic
+                    ClientStart();// begins client connection
                     break;
                 case ConsoleKey.D3:
                     break;
             }
         }
+
+
+        //Wipes the scores
         static bool ClearSelect()
         {
             bool valid;
@@ -1172,7 +1302,7 @@ namespace Snake
                 Console.WriteLine("\tClear scores for:\n\t1:Easy\n\t2:Medium\n\t3:Hard\n\t4:Impossible\n\t5:Back");
 
 
-
+                //Sets scores to new list
                 switch (Console.ReadKey(true).Key)
                 {
                     case ConsoleKey.D1:
@@ -1202,6 +1332,8 @@ namespace Snake
             while (!valid);
             return true;
         }
+
+        //Menu for displaying highscores
         static bool DrawHighScores()
         {
             bool valid;
@@ -1212,6 +1344,8 @@ namespace Snake
                 DrawTitle((currentOptions.windowWidth / 2) - 27, 2);
                 Console.SetCursorPosition(0, 12);
                 Console.WriteLine("\tShow scores for:\n\t1:Easy\n\t2:Medium\n\t3:Hard\n\t4:Impossible\n\t5:Clear Scores\n\t6:Back");
+
+                //Sorts all scores
                 easyHighScores = SortHighScores(easyHighScores);
 
                 normalHighScores = SortHighScores(normalHighScores);
@@ -1220,7 +1354,7 @@ namespace Snake
 
                 impossibleHighScores = SortHighScores(impossibleHighScores);
 
-
+                //Displays all scores
                 switch (Console.ReadKey(true).Key)
                 {
                     case ConsoleKey.D1:
@@ -1249,8 +1383,17 @@ namespace Snake
             while (!valid);
             return true;
         }
+
+        //Main loop
         static void Main(string[] args)
         {
+
+            //Creates folder for snake in %appdata% if it doesn't exist
+            if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\Snake\"))
+            {
+                Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\Snake\");
+            }
+            //Loads all highscores and options from file
             easyHighScores = LoadHighScores("easy");
 
             normalHighScores = LoadHighScores("normal");
@@ -1260,41 +1403,44 @@ namespace Snake
             impossibleHighScores = LoadHighScores("impossible");
 
             currentOptions = LoadOptions();
-            while (running)
+            while (running)//Loops the main menu until program close
             {
                 connected = false;
-                Console.Title = "Snake";
-                Console.CursorVisible = false;
+                Console.Title = "Snake";//Sets window title
+                Console.CursorVisible = false;//Removes cursor
 
+                //Sets window dimensions from options
                 Console.WindowWidth = currentOptions.windowWidth;
                 Console.WindowHeight = currentOptions.windowHeight;
+                //Draws title
                 Console.Clear();
                 DrawTitle((currentOptions.windowWidth / 2) - 27, 2);
                 Console.SetCursorPosition(0, 12);
+                //Main menu
                 Console.WriteLine("\t1:Local Game\n\t2:Networked Game\n\t3:Scores\n\t4:Edit options\n\t5:Exit");
                 switch (Console.ReadKey(true).Key)
                 {
                     case ConsoleKey.D1:
-                        multiplayer = false;
-                        if (DifficultySelect())
+                        multiplayer = false;//Local game
+                        if (DifficultySelect())//Sets difficulty
                         {
-                            if (PlayerSelect())
+                            if (PlayerSelect())//Sets amount of players
                             {
+                                //Begins game
                                 Initialize();
-                                SinglePlayerGameLoop();
+                                GameLoop();
                             }
                         }
                         break;
                     case ConsoleKey.D2:
-                        multiplayer = true;
-                        difficulty = 3;
+                        multiplayer = true;//Lan multiplayer
 
-
-                        MultiplayerSelect();
+                        MultiplayerSelect();//Starts Lan multiplayer menus
 
                         break;
                     case ConsoleKey.D3:
-                        while (DrawHighScores())
+
+                        while (DrawHighScores())//Highscores menu
                         {
 
                         }
@@ -1303,13 +1449,13 @@ namespace Snake
 
                         break;
                     case ConsoleKey.D4:
-                        while (EditKeyBindingsMenu())
+                        while (EditKeyBindingsMenu())// Key Bindings Menu
                         {
 
                         }
                         break;
                     case ConsoleKey.D5:
-                        running = false;
+                        running = false;//Ends program
                         break;
                 }
 

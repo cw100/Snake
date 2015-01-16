@@ -13,47 +13,39 @@ namespace Snake
 {
     class Server
     {
-        ConsoleKeyInfo clientInput;
             TcpClient clientSocket;
-            int clNo;
+            int clientNumber;
 
-            public void startClient(TcpClient inClientSocket, int clineNo)
+            public void startClient(TcpClient inClientSocket, int clientnumber)//Begins new client with arguements
             {
                 this.clientSocket = inClientSocket;
-                this.clNo = clineNo;
-                Thread ctThread = new Thread(sendData);
-                ctThread.Start();
+                this.clientNumber = clientnumber;
+
+                Thread clientThread = new Thread(sendData);
+                clientThread.Start();//Begins client thread
             }
 
             private void sendData()
             {
-                int requestCount = 0;
-                Player.Direction direction;
-                Byte[] sendBytes = null;
-                string rCount = null;
-                requestCount = 0;
+                Byte[] sendBytes = null;//Blank byte array to be sent
 
 
-                while (Program.gameRunning == true)
+                while (Program.gameRunning == true)//Only while game is running
                 {
 
 
                     try
                     {
-                        requestCount = requestCount + 1;
-                        NetworkStream networkStream = clientSocket.GetStream();
+                        NetworkStream networkStream = clientSocket.GetStream();//Sets networkStream to current socket stream
 
-                        byte[] bytesFrom = new byte[10000];
-                        networkStream.Read(bytesFrom, 0, 10000);
-                        Program.players[this.clNo].input = (ConsoleKeyInfo)Program.DeserializeFromBytes(bytesFrom);
+                        byte[] bytesFrom = new byte[10000];//Byte array to hold incoming data
+                        networkStream.Read(bytesFrom, 0, 10000);//Collects incoming data to byte array
+                        Program.players[this.clientNumber].input = (ConsoleKeyInfo)Program.DeserializeFromBytes(bytesFrom);//Deserializes the data into Console key Info and sets the programs main input to this
 
-                        rCount = Convert.ToString(requestCount);
 
-                        MemoryStream stream = new MemoryStream();
+                        sendBytes = Program.SerializeToBytes<Tile[,]>(Program.Grid);//Serializes grid
 
-                        sendBytes = Program.SerializeToBytes<Tile[,]>(Program.Grid);
-
-                        networkStream.Write(sendBytes, 0, sendBytes.Length);
+                        networkStream.Write(sendBytes, 0, sendBytes.Length);//Sends serialized grid to clients
                     }
                     catch 
                     {
@@ -64,11 +56,10 @@ namespace Snake
                     
                    
                 }
-               
-                clientSocket.Close();
-                Program.serverSocket.Stop();
-                Program.serverThread.Abort();
-                Thread.CurrentThread.Abort();
+                Program.started = false;//Ends the server
+                clientSocket.Close();//Closes current connection
+                
+                Thread.CurrentThread.Abort();//Ends thread
 
 
             }

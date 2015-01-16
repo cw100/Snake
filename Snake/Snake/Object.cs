@@ -11,12 +11,16 @@ namespace Snake
         public bool active;
         public int[,] position= new int[1,2];
         int x, y;
+
+        //Sets default values for pickup objects
         public void Initialize(Random randomizer, int gridwidth, int gridheight, List<Object> walls)
         {
             active = true;
-
+            
+            //Checks to prevent being placed on a wall
             do
             {
+                //Randomly chooses new position
                 x = randomizer.Next(gridwidth);
                 y = randomizer.Next(gridheight);
             }
@@ -25,25 +29,28 @@ namespace Snake
             position[0,0]= x;
             position[0, 1] = y;
         }
+
+        //Wall default values
          public void Initialize(int x, int y)
          {
              active = true;
              position[0, 0] = x;
              position[0, 1] = y;
          }
+
+
         public bool CheckForWall(int x, int y, List<Object> walls)
          {
-             try
+             if (walls.Count != 0)
              {
                  foreach (Object wall in walls)
                  {
-                     if (wall.position[0, 0] == x && wall.position[0, 1] == y)
+                     if (wall.position[0, 0] == x && wall.position[0, 1] == y)//If the position is in a wall, return true
                      {
                          return true;
                      }
                  }
              }
-             catch { }
              return false;
          }
 

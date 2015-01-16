@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Snake
 {
-    [Serializable]
+    [Serializable]//Allows class to be serialized, for xml saving
    public class Options
     {
-
+        //Store option variables
         public int windowWidth = 100; 
         public int windowHeight = 40; 
             public ConsoleKey playerOneUpKey = ConsoleKey.W;

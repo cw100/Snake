@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Snake
 {
-    [Serializable]
+    [Serializable]//Allows class to be serialized
     public class ScoreObject
     {
-        public int score;
-        public string username;
+        public int score;//Score holder
+        public string username;//Username holder
     }
 }

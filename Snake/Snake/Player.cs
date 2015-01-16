@@ -25,6 +25,8 @@ namespace Snake
         public int playerNumber;
         public ConsoleKeyInfo input;
         public int score;
+
+     
         public enum Direction
         {
             Up,
@@ -38,19 +40,23 @@ namespace Snake
         public ConsoleKey downKey = ConsoleKey.S;
         public ConsoleKey rightKey = ConsoleKey.D;
         public ConsoleKey leftKey = ConsoleKey.A;
+
+        //Sets default values
         public void Initialize(int x, int y, int snakelength, int gridwidth, int gridheight, int playerspeed, int playernum)
         {
             playerNumber = playernum;
             playerSpeed = playerspeed;
             gridHeight = gridheight;
             gridWidth = gridwidth;
+            //Spawn location
             headPosition[0, 0] = x;
             headPosition[0, 1] = y;
 
             snakeLength = snakelength;
             currentDirection = Direction.Right;
             lastDirection = Direction.Right;
-            if (playerNumber == 1)
+            //Sets the control methods
+            if (playerNumber == 1 || multiplayer == true)
             {
 
                 upKey = Program.currentOptions.playerOneUpKey;
@@ -58,17 +64,19 @@ namespace Snake
                 rightKey = Program.currentOptions.playerOneRightKey;
                 leftKey = Program.currentOptions.playerOneLeftKey;
             }
-            if (playerNumber == 2)
+            else
             {
-                upKey = Program.currentOptions.playerTwoUpKey;
-                downKey = Program.currentOptions.playerTwoDownKey;
-                rightKey = Program.currentOptions.playerTwoRightKey;
-                leftKey = Program.currentOptions.playerTwoLeftKey;
+                if (playerNumber == 2)
+                {
+                    upKey = Program.currentOptions.playerTwoUpKey;
+                    downKey = Program.currentOptions.playerTwoDownKey;
+                    rightKey = Program.currentOptions.playerTwoRightKey;
+                    leftKey = Program.currentOptions.playerTwoLeftKey;
+                }
             }
-           
             playerInputThread = new Thread(new ThreadStart(PlayerInput));
 
-            playerInputThread.Start();
+            playerInputThread.Start();//Starts the player input thread
 
 
         }
@@ -76,16 +84,18 @@ namespace Snake
 
         public void PlayerInput()
         {
-            while (true)
+            while (true)//Constant loop
             {
                 
-                    new System.Threading.ManualResetEvent(false).WaitOne(10);
+                    new System.Threading.ManualResetEvent(false).WaitOne(10);//Pause thread to prevent massive cpu usage
+
+                //Takes input from main input thread if local game, uses if else statements instead of switch case to allow for variable key input
                     if (!multiplayer)
                     {
                         if (Program.input.Key == upKey)
                         {
 
-                            if (lastDirection == Direction.Right || lastDirection == Direction.Left)
+                            if (lastDirection == Direction.Right || lastDirection == Direction.Left)//Prevents player going back on themselves
                             {
                                 currentDirection = Direction.Up;
 
@@ -119,6 +129,8 @@ namespace Snake
 
                                     }
                     }
+
+                //Multiplayer input taken from client
                     if (multiplayer)
                     {
                         if (input.Key == upKey)
@@ -168,17 +180,20 @@ namespace Snake
 
 
 
-
+        //Moves the player
         public void PlayerMove()
         {
 
-            bodyPosition = new int[1, 2];
-            bodyPosition[0, 1] = headPosition[0, 1];
+            bodyPosition = new int[1, 2];//New body location
 
+            //Body set to current head
+            bodyPosition[0, 1] = headPosition[0, 1];
             bodyPosition[0, 0] = headPosition[0, 0];
 
-            bodyPositions.Add(bodyPosition);
+            bodyPositions.Add(bodyPosition);//Body added to list
 
+
+            //Moves head location depending on direction
             if (currentDirection == Direction.Up)
             {
                 headPosition[0, 1] -= 1;
@@ -196,8 +211,9 @@ namespace Snake
             {
                 headPosition[0, 0] -= 1;
             }
-            lastDirection = currentDirection;
+            lastDirection = currentDirection;//For preventing player moving back on self
 
+            //If the player hits the sides of screen they loop
             if (headPosition[0, 0] > gridWidth - 1)
             {
                 headPosition[0, 0] = 0;
@@ -219,13 +235,15 @@ namespace Snake
             
 
         }
+
+        //Check for length being higher than max
         public bool CheckLength()
         {
 
             if (bodyPositions.Count > snakeLength)
             {
 
-                return true;
+                return true;//Returns true if too high
             }
 
             return false;
@@ -238,13 +256,11 @@ namespace Snake
             PlayerMove();
 
 
-
-
         }
         public void GameEnd()
         {
 
-            playerInputThread.Abort();
+            playerInputThread.Abort();//Ends input thread
         }
 
 
