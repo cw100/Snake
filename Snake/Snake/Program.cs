@@ -220,12 +220,14 @@ namespace Snake
             {
                 for (int j = 0; j < Grid.GetLength(1); j++)
                 {
-                    //Fore checking updates
+                    
+                    Grid[i, j].Update(); //Calls the update method of every Grid Tile
+
+                    //For checking updates
                     Grid[i, j].didContainBody = Grid[i, j].containsBody;
                     Grid[i, j].didContainHead = Grid[i, j].containsHead;
                     Grid[i, j].didContainPickup = Grid[i, j].containsPickup;
                     Grid[i, j].didContainWall = Grid[i, j].containsWall;
-                    Grid[i, j].Update(); //Calls the update method of every Grid Tile
                     if (Grid[i, j].hasChanged == true)//Only updates if the icon has changed since last update
                     {
 
